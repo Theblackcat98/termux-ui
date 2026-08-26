@@ -192,6 +192,7 @@ func (a *App) OpenInEditor(path string) tea.Cmd {
 	if os.Getenv("EDITOR") == "" {
 		if err := os.Setenv("EDITOR", "vi"); err != nil {
 			a.ToastError("could not set default EDITOR: " + err.Error())
+			return nil
 		}
 	}
 	cmd := exec.Command("sh", "-c", `exec "$EDITOR" "$1"`, "sh", path)
