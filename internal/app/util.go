@@ -190,7 +190,9 @@ func termuxDiff(a, b string) string {
 // OpenInEditor streams $EDITOR over a path via tea.ExecProcess.
 func (a *App) OpenInEditor(path string) tea.Cmd {
 	if os.Getenv("EDITOR") == "" {
-		os.Setenv("EDITOR", "vi")
+		if err := os.Setenv("EDITOR", "vi"); err != nil {
+			a.ToastError("could not set default EDITOR: " + err.Error())
+		}
 	}
 	cmd := exec.Command("sh", "-c", `exec "$EDITOR" "$1"`, "sh", path)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr

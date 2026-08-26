@@ -84,7 +84,7 @@ func selfUpdateCmd(latest string) tea.Cmd {
 			return childDone{title: "self-update", err: err}
 		}
 		if err := os.Rename(tmp, target); err != nil {
-			os.Remove(tmp)
+			_ = os.Remove(tmp) // ignore cleanup error on failure path
 			return childDone{title: "self-update", err: err}
 		}
 		return childDone{title: "self-update → " + latest, err: nil, after: func(m *App, err error) tea.Cmd {
