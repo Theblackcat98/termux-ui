@@ -152,8 +152,11 @@ func (s *appsSystemScreen) companionRows() []actionRow {
 				label: bootStatus(),
 				desc:  "open the Termux:Boot app once after install to enable it",
 				run: func(m *App) tea.Cmd {
-					os.MkdirAll(homePath(".termux/boot"), 0o700)
-					m.ToastGood("~/.termux/boot ready")
+					if err := os.MkdirAll(homePath(".termux/boot"), 0o700); err != nil {
+						m.ToastError(err.Error())
+					} else {
+						m.ToastGood("~/.termux/boot ready")
+					}
 					return m.current().Update(m, refreshMsg{})
 				},
 			})
@@ -162,8 +165,11 @@ func (s *appsSystemScreen) companionRows() []actionRow {
 				label: shortcutsStatus(),
 				desc:  "creates ~/.shortcuts if missing",
 				run: func(m *App) tea.Cmd {
-					os.MkdirAll(homePath(".shortcuts"), 0o700)
-					m.ToastGood("~/.shortcuts ready")
+					if err := os.MkdirAll(homePath(".shortcuts"), 0o700); err != nil {
+						m.ToastError(err.Error())
+					} else {
+						m.ToastGood("~/.shortcuts ready")
+					}
 					return m.current().Update(m, refreshMsg{})
 				},
 			})
