@@ -47,12 +47,15 @@ Screens: 1 dashboard · 2 modules & packages · 3 termux settings ·
 
 	if os.Getenv("TERMUX_VERSION") == "" {
 		prefix := os.Getenv("PREFIX")
-		if prefix != "/data/data/com.termux/files/usr" {
+		if prefix == "/data/data/com.termux/files/usr" {
 			fmt.Fprintln(os.Stderr, "warning: TERMUX_VERSION is not set — this tool only runs inside Termux; continuing anyway because $PREFIX looks right")
+		} else {
 			if prefix == "" {
 				fmt.Fprintln(os.Stderr, "error: not running under Termux ($PREFIX missing). Exiting.")
-				os.Exit(1)
+			} else {
+				fmt.Fprintln(os.Stderr, "error: not running under Termux ($PREFIX incorrect). Exiting.")
 			}
+			os.Exit(1)
 		}
 	}
 
