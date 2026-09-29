@@ -27,6 +27,16 @@ Build it yourself on-device with Termux's own golang (`pkg install golang git`):
 
 ## Screens
 
+These are live captures of the running TUI in an isolated terminal with temporary Termux environment variables (not an Android device). The temporary home has no installed `core` CLI and no granted storage. Select an image to open the full-size capture.
+
+| Dashboard | Modules & Packages |
+|---|---|
+| <a href="docs/screenshots/dashboard.png"><img src="docs/screenshots/dashboard.png" alt="Dashboard screen" width="480"></a> | <a href="docs/screenshots/modules-packages.png"><img src="docs/screenshots/modules-packages.png" alt="Modules and Packages screen" width="480"></a> |
+| Termux Settings | Extra Keys Builder |
+| <a href="docs/screenshots/termux-settings.png"><img src="docs/screenshots/termux-settings.png" alt="Termux Settings screen" width="480"></a> | <a href="docs/screenshots/extra-keys-builder.png"><img src="docs/screenshots/extra-keys-builder.png" alt="Extra Keys Builder screen" width="480"></a> |
+| Themes & Fonts | |
+| <a href="docs/screenshots/themes-fonts.png"><img src="docs/screenshots/themes-fonts.png" alt="Themes and Fonts screen" width="480"></a> | |
+
 | # | Screen | What it does |
 |---|--------|--------------|
 | 1 | **Dashboard** | Termux/core/termux-ui versions, storage permission, pending restarts; quick actions: install/update core (`i`), setup storage (`s`), self-update (`u`) |
