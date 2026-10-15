@@ -7,7 +7,7 @@
 # GitHub Releases and installs it to $PREFIX/bin/termux-ui.
 set -euo pipefail
 
-REPO="DevCoreXOfficial/termux-ui"
+REPO="Theblackcat98/termux-ui"
 
 if [ -z "${TERMUX_VERSION:-}" ] || [ -z "${PREFIX:-}" ]; then
   echo "error: this installer must run inside Termux (\$PREFIX/$TERMUX_VERSION missing)." >&2
