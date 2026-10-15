@@ -62,7 +62,9 @@ Screens: 1 dashboard · 2 modules & packages · 3 termux settings ·
 
 	if _, err := os.Stat("/data/data/com.termux/files/home/.termux"); err != nil {
 		if home := os.Getenv("HOME"); home != "" {
-			_ = os.MkdirAll(home+"/.termux", 0o700)
+			if err := os.MkdirAll(home+"/.termux", 0o700); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: could not create .termux dir: %v\n", err)
+			}
 		}
 	}
 
