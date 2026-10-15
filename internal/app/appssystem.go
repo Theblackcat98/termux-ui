@@ -249,8 +249,7 @@ func (s *appsSystemScreen) sshRows() []actionRow {
 	port := sshPort()
 	ip := phoneIP()
 	state := "stopped"
-	styleTxt := ui.StatusText("not installed")
-	styleTxt = ui.StatusText(pkgInstalledLabel())
+	styleTxt := ui.StatusText(pkgInstalledLabel())
 	if sshdRunning() {
 		state = ui.GoodStyle.Render("running")
 	} else {

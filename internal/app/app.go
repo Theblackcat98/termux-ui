@@ -39,7 +39,6 @@ type App struct {
 
 	showHelp bool
 	quitting bool
-	tickSeq  int
 }
 
 // New builds the root model with the dashboard on the stack.
@@ -193,7 +192,7 @@ func (a *App) footer(hintKeys string) string {
 	if hintKeys != "" {
 		left = fmt.Sprintf(" %s ", ui.KeyStyle.Render(hintKeys))
 	}
-	right := fmt.Sprintf("? help · esc back · q quit ")
+	right := "? help · esc back · q quit "
 	gap := a.width - len(ui.Strip(left)) - len(ui.Strip(right))
 	if gap < 1 {
 		gap = 1
