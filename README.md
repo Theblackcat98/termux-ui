@@ -12,7 +12,7 @@ confirmation, writes a timestamped backup, then runs `termux-reload-settings`.
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/DevCoreXOfficial/termux-ui/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Theblackcat98/termux-ui/main/install.sh | bash
 ```
 
 The one-liner detects your arch, downloads the matching prebuilt binary from
