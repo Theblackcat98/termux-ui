@@ -180,6 +180,14 @@ func (s *settingsScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 			return nil
 		}
 
+		f := s.focusedField()
+		if f != nil && (f.def.Kind == kText || f.def.Kind == kNumber) {
+			if t.Type == tea.KeyRunes || t.Type == tea.KeySpace {
+				s.editText(f, key)
+				return nil
+			}
+		}
+
 		switch key {
 		case "up", "k":
 			if !s.atInfoGroup() && s.focus > 0 {
@@ -280,8 +288,8 @@ func (s *settingsScreen) editText(f *fieldState, key string) {
 		f.text.Backspace()
 		return
 	default:
-		if len(key) == 1 {
-			f.text.Insert([]rune(key)[0])
+		for _, r := range key {
+			f.text.Insert(r)
 		}
 	}
 	f.text.Err = ""
