@@ -100,13 +100,18 @@ type ekScreen struct {
 	diffCommit  func(a *App) tea.Cmd
 	errorsShown []error
 	path        string
+	loadErr     error
 }
 
 func newExtraKeysScreen(a *App) *ekScreen {
 	s := &ekScreen{app: a, layout: &extrakeys.Layout{}}
 	home, _ := os.UserHomeDir()
 	s.path = filepath.Join(home, ".termux", "termux.properties")
-	doc, _ := termuxconf.Load(s.path)
+	doc, err := termuxconf.Load(s.path)
+	if err != nil {
+		s.loadErr = err
+		a.ToastError("reading properties: " + err.Error())
+	}
 	if raw := doc.Get("extra-keys", ""); raw != "" {
 		if l, err := extrakeys.Parse(raw); err == nil {
 			s.layout = l
@@ -425,6 +430,10 @@ func newItems(keys []string) []paletteItem {
 }
 
 func (s *ekScreen) beginSave(a *App) tea.Cmd {
+	if s.loadErr != nil {
+		a.ToastError("cannot save: properties file was unreadable at load")
+		return nil
+	}
 	errs := extrakeys.Validate(s.layout)
 	if len(errs) > 0 {
 		s.errorsShown = errs

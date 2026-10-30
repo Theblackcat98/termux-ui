@@ -41,6 +41,44 @@ func drainCmds(t *testing.T, a *App, cmds []tea.Cmd) {
 	}
 }
 
+func TestLoadFailures(t *testing.T) {
+	a := newTestApp(t)
+	dir := os.Getenv("HOME")
+	propPath := filepath.Join(dir, ".termux", "termux.properties")
+	os.MkdirAll(propPath, 0o700) // make it a dir to fail ReadFile
+
+	// 1. Settings screen
+	cmd := a.jumpTo("3")
+	drainCmds(t, a, []tea.Cmd{cmd})
+	s := a.current().(*settingsScreen)
+
+	// Should not panic, should show error toast
+	view := a.View()
+	if !strings.Contains(view, "reading properties: ") {
+		t.Fatalf("error toast not shown in UI, view:\n%s", view)
+	}
+
+	// Try to save
+	s.beginSave(a)
+	if !strings.Contains(a.View(), "cannot save: properties file was unreadable") {
+		t.Fatalf("expected save block toast, got \n%s", a.View())
+	}
+
+	// 2. Extra Keys screen
+	cmd = a.jumpTo("4")
+	drainCmds(t, a, []tea.Cmd{cmd})
+	e := a.current().(*ekScreen)
+
+	// Should not panic
+	a.View()
+
+	// Try to save
+	e.beginSave(a)
+	if !strings.Contains(a.View(), "cannot save: properties file was unreadable") {
+		t.Fatalf("expected save block toast, got \n%s", a.View())
+	}
+}
+
 func TestDashboardViewShowsStatus(t *testing.T) {
 	a := newTestApp(t)
 	view := a.View()
