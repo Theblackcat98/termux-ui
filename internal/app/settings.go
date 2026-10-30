@@ -42,6 +42,7 @@ type settingsScreen struct {
 	focus  int // focused field inside the group
 	path   string
 
+	loadErr     error
 	confirm     *ui.Confirm
 	pendingSave func(a *App) tea.Cmd
 	dangerInput *ui.TextInput
@@ -67,6 +68,7 @@ func (s *settingsScreen) load() {
 	doc, err := termuxconf.Load(s.path)
 	if err != nil {
 		s.app.ToastError("reading properties: " + err.Error())
+		s.loadErr = err
 	}
 	s.fields = s.fields[:0]
 	for _, g := range propGroups {
@@ -330,6 +332,10 @@ func (s *settingsScreen) buildDoc() (*termuxconf.File, error) {
 }
 
 func (s *settingsScreen) beginSave(a *App) tea.Cmd {
+	if s.loadErr != nil {
+		a.ToastError("cannot save: properties file was unreadable at load")
+		return nil
+	}
 	doc, err := s.buildDoc()
 	if err != nil {
 		a.ToastError(err.Error() + " — fix the highlighted fields")
