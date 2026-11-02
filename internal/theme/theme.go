@@ -66,8 +66,20 @@ func Parse(name, text string) (*Theme, error) {
 			if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "!") {
 				continue
 			}
-			k, v, ok := strings.Cut(line, "=")
-			if ok && strings.TrimSpace(k) == key {
+			var k, v string
+			idx := strings.IndexAny(line, "=:\t ")
+			if idx != -1 {
+				k = line[:idx]
+				v = line[idx:]
+				v = strings.TrimLeft(v, " \t")
+				if len(v) > 0 && (v[0] == '=' || v[0] == ':') {
+					v = v[1:]
+					v = strings.TrimLeft(v, " \t")
+				}
+			} else {
+				k = line
+			}
+			if k == key {
 				return strings.TrimSpace(v), true
 			}
 		}
