@@ -231,7 +231,9 @@ func (m *modulesScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 			}
 			return m.loadIfNeeded(a)
 		case " ":
-			return m.toggleChecked(mod)
+			if m.focusR {
+				return m.toggleChecked(mod)
+			}
 
 		case "a":
 			rows, _ := m.rows(mod)
