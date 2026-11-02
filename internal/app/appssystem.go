@@ -44,7 +44,7 @@ func newAppsSystemScreen(a *App) *appsSystemScreen {
 
 func (s *appsSystemScreen) Title() string { return "Apps & System" }
 func (s *appsSystemScreen) WantsGlobalKeys() bool {
-	return s.confirm == nil && s.pager == nil && !s.passwdOpen
+	return s.confirm == nil && s.pager == nil && !s.passwdOpen && !s.bootNameOpen
 }
 
 func homePath(rel string) string { return filepath.Join(homeDir, rel) }
