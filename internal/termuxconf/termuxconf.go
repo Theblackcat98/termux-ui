@@ -294,13 +294,28 @@ func wrapAfterRowSeparators(encoded string) []string {
 }
 
 func (f *File) setLines(key, value string, lines []string) {
+	lastIdx := -1
 	for i := range f.Records {
 		if f.Records[i].isProp && f.Records[i].key == key {
-			f.Records[i].lines = lines
-			f.Records[i].value = value
-			return
+			lastIdx = i
 		}
 	}
+
+	if lastIdx != -1 {
+		f.Records[lastIdx].lines = lines
+		f.Records[lastIdx].value = value
+
+		var newRecords []record
+		for i, rec := range f.Records {
+			if rec.isProp && rec.key == key && i != lastIdx {
+				continue
+			}
+			newRecords = append(newRecords, rec)
+		}
+		f.Records = newRecords
+		return
+	}
+
 	if n := len(f.Records); n > 0 && f.Records[n-1].isProp {
 		f.Records = append(f.Records, record{lines: []string{""}})
 	}
@@ -325,7 +340,7 @@ func (f *File) Render() string {
 
 // Get returns the decoded value of key, or def when absent.
 func (f *File) Get(key, def string) string {
-	for i := range f.Records {
+	for i := len(f.Records) - 1; i >= 0; i-- {
 		if f.Records[i].isProp && f.Records[i].key == key {
 			return f.Records[i].value
 		}
@@ -335,7 +350,7 @@ func (f *File) Get(key, def string) string {
 
 // Has reports whether the key exists in the file.
 func (f *File) Has(key string) bool {
-	for i := range f.Records {
+	for i := len(f.Records) - 1; i >= 0; i-- {
 		if f.Records[i].isProp && f.Records[i].key == key {
 			return true
 		}
@@ -345,20 +360,28 @@ func (f *File) Has(key string) bool {
 
 // Unset removes the key's record entirely (used by "reset to default").
 func (f *File) Unset(key string) bool {
-	for i := range f.Records {
-		if f.Records[i].isProp && f.Records[i].key == key {
-			f.Records = append(f.Records[:i], f.Records[i+1:]...)
-			return true
+	var newRecords []record
+	removed := false
+	for _, rec := range f.Records {
+		if rec.isProp && rec.key == key {
+			removed = true
+		} else {
+			newRecords = append(newRecords, rec)
 		}
 	}
-	return false
+	if removed {
+		f.Records = newRecords
+	}
+	return removed
 }
 
 // Keys lists all property keys in document order.
 func (f *File) Keys() []string {
 	var out []string
+	seen := make(map[string]bool)
 	for _, rec := range f.Records {
-		if rec.isProp {
+		if rec.isProp && !seen[rec.key] {
+			seen[rec.key] = true
 			out = append(out, rec.key)
 		}
 	}

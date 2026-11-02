@@ -146,3 +146,45 @@ func TestBackupMissingFileIsNoop(t *testing.T) {
 		t.Fatalf("expected no-op backup, got %q, %v", bak, err)
 	}
 }
+
+func TestDuplicateHandling(t *testing.T) {
+	text := "k=old\nk=new\n"
+	f := Parse(text)
+
+	// Get should return the last occurrence
+	if got := f.Get("k", ""); got != "new" {
+		t.Fatalf("Get: got %q, want %q", got, "new")
+	}
+
+	// Set should update the last occurrence and remove earlier ones
+	f.Set("k", "updated")
+	out := f.Render()
+	if strings.Count(out, "k=") != 1 {
+		t.Fatalf("Set: expected exactly 1 occurrence of k= in output, got: %q", out)
+	}
+	if !strings.Contains(out, "k=updated") {
+		t.Fatalf("Set: expected output to contain k=updated, got: %q", out)
+	}
+
+	// Has should be true
+	if !f.Has("k") {
+		t.Fatalf("Has: expected true")
+	}
+
+	// Keys should only list "k" once
+	f = Parse(text)
+	keys := f.Keys()
+	if len(keys) != 1 || keys[0] != "k" {
+		t.Fatalf("Keys: expected [\"k\"], got %v", keys)
+	}
+
+	// Unset should remove all occurrences
+	f = Parse(text)
+	if !f.Unset("k") {
+		t.Fatalf("Unset: expected true")
+	}
+	out = f.Render()
+	if strings.Contains(out, "k=") {
+		t.Fatalf("Unset: expected all occurrences to be removed, got: %q", out)
+	}
+}
