@@ -187,13 +187,7 @@ func (c *colorsTab) Update(a *App, msg tea.Msg) tea.Cmd {
 		case "enter":
 			c.applyCustom(a)
 		case "esc":
-			if c.fieldIx >= len(c.fields) {
-				c.customOpen = false
-			} else if c.fieldIx > 0 {
-				c.fieldIx--
-			} else {
-				c.customOpen = false
-			}
+			c.customOpen = false
 		default:
 			if c.fieldIx < len(c.fields) {
 				typeInto(&c.fields[c.fieldIx].input, key)

@@ -51,6 +51,38 @@ func TestDashboardViewShowsStatus(t *testing.T) {
 	}
 }
 
+func TestThemeCustomEditorEscapeClosesEverywhere(t *testing.T) {
+	// Tests issue #22
+	// 19 fields + 1 save row = 20 total positions
+	for i := 0; i < 20; i++ {
+		a := newTestApp(t)
+		cmd := a.jumpTo("5")
+		drainCmds(t, a, []tea.Cmd{cmd})
+
+		// Open custom editor
+		_, cmd = a.Update(keyMsg("c"))
+		drainCmds(t, a, []tea.Cmd{cmd})
+		if !strings.Contains(a.View(), "Custom editor") {
+			t.Fatalf("custom editor did not open at i=%d", i)
+		}
+
+		// Move to field i
+		for j := 0; j < i; j++ {
+			_, cmd = a.Update(keyMsg("down"))
+			drainCmds(t, a, []tea.Cmd{cmd})
+		}
+
+		// Press escape
+		_, cmd = a.Update(keyMsg("esc"))
+		drainCmds(t, a, []tea.Cmd{cmd})
+
+		// Verify editor is closed
+		if strings.Contains(a.View(), "Custom editor") {
+			t.Fatalf("custom editor failed to close after pressing escape at field %d", i)
+		}
+	}
+}
+
 func TestModulesScreenLoadsLiveCoreList(t *testing.T) {
 	a := newTestApp(t)
 	cmd := a.jumpTo("2")
