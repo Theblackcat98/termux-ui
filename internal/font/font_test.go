@@ -86,3 +86,26 @@ func TestInstallWritesAndBacksUp(t *testing.T) {
 		t.Fatal("garbage must be rejected before touching font.ttf")
 	}
 }
+
+func TestRemoveFontWithBackup(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME", dir)
+	os.MkdirAll(filepath.Join(dir, ".termux"), 0o700)
+	os.WriteFile(FontPath(), []byte("old-font"), 0o644)
+
+	if err := RemoveFont(); err != nil {
+		t.Fatal(err)
+	}
+	_, err := os.Stat(FontPath())
+	if !os.IsNotExist(err) {
+		t.Fatal("font.ttf was not deleted")
+	}
+	matches, _ := filepath.Glob(filepath.Join(dir, ".termux", "font.ttf.bak.*"))
+	if len(matches) != 1 {
+		t.Fatalf("expected one backup, got %v", matches)
+	}
+	backupData, err := os.ReadFile(matches[0])
+	if err != nil || string(backupData) != "old-font" {
+		t.Fatal("backup content is wrong")
+	}
+}
