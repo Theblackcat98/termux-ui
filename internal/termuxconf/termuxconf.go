@@ -380,11 +380,24 @@ func Backup(orig string, now time.Time) (string, error) {
 		}
 		return "", err
 	}
-	dst := BackupPath(orig, now)
-	if err := os.WriteFile(dst, data, 0o600); err != nil {
-		return "", err
+
+	baseDst := BackupPath(orig, now)
+	dst := baseDst
+
+	for i := 1; ; i++ {
+		f, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+		if err == nil {
+			defer f.Close()
+			if _, err := f.Write(data); err != nil {
+				return "", err
+			}
+			return dst, nil
+		}
+		if !os.IsExist(err) {
+			return "", err
+		}
+		dst = fmt.Sprintf("%s-%d", baseDst, i)
 	}
-	return dst, nil
 }
 
 // Save backs up the existing file (if any) and atomically writes content.
