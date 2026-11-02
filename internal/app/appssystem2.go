@@ -51,6 +51,10 @@ func (s *appsSystemScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 					s.bootCreateName.Err = "name required"
 					return nil
 				}
+				if strings.ContainsAny(name, "/\\") || name == "." || name == ".." {
+					s.bootCreateName.Err = "invalid name"
+					return nil
+				}
 				if !strings.HasSuffix(name, ".sh") {
 					name += ".sh"
 				}
@@ -58,7 +62,7 @@ func (s *appsSystemScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 				}
 				path := filepath.Join(homePath(".termux/boot"), name)
 				s.bootNameOpen = false
-				if _, err := os.Stat(path); err == nil {
+				if _, err := os.Lstat(path); err == nil {
 					a.ToastError("already exists: " + path)
 					return nil
 				}
