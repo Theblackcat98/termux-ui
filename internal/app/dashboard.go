@@ -14,12 +14,12 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/catalog"
-	"github.com/DevCoreXOfficial/termux-ui/internal/core"
-	"github.com/DevCoreXOfficial/termux-ui/internal/ui"
+	"github.com/Theblackcat98/termux-ui/internal/catalog"
+	"github.com/Theblackcat98/termux-ui/internal/core"
+	"github.com/Theblackcat98/termux-ui/internal/ui"
 )
 
-const repoAPI = "https://api.github.com/repos/DevCoreXOfficial/termux-ui/releases/latest"
+const repoAPI = "https://api.github.com/repos/Theblackcat98/termux-ui/releases/latest"
 
 // updateMsg carries the result of a background update check.
 type updateMsg struct {
@@ -59,7 +59,7 @@ func checkUpdateCmd(state *State) tea.Cmd {
 // selfUpdateCmd downloads the matching release binary and swaps it in.
 func selfUpdateCmd(latest string) tea.Cmd {
 	arch := runtime.GOARCH
-	asset := fmt.Sprintf("https://github.com/DevCoreXOfficial/termux-ui/releases/latest/download/termux-ui_linux_%s", arch)
+	asset := fmt.Sprintf("https://github.com/Theblackcat98/termux-ui/releases/latest/download/termux-ui_linux_%s", arch)
 	return func() tea.Msg {
 		prefix := os.Getenv("PREFIX")
 		if prefix == "" {

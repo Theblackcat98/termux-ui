@@ -8,8 +8,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/core"
-	"github.com/DevCoreXOfficial/termux-ui/internal/ui"
+	"github.com/Theblackcat98/termux-ui/internal/core"
+	"github.com/Theblackcat98/termux-ui/internal/ui"
 )
 
 // screen is one full-page view managed by the root App.

@@ -11,8 +11,8 @@ import (
 
 	"github.com/charmbracelet/bubbletea"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/catalog"
-	"github.com/DevCoreXOfficial/termux-ui/internal/ui"
+	"github.com/Theblackcat98/termux-ui/internal/catalog"
+	"github.com/Theblackcat98/termux-ui/internal/ui"
 )
 
 // actionRow is one selectable line on the Apps & System screen.

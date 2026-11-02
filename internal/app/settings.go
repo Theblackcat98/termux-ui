@@ -8,8 +8,8 @@ import (
 
 	"github.com/charmbracelet/bubbletea"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/termuxconf"
-	"github.com/DevCoreXOfficial/termux-ui/internal/ui"
+	"github.com/Theblackcat98/termux-ui/internal/termuxconf"
+	"github.com/Theblackcat98/termux-ui/internal/ui"
 )
 
 // fieldState is the live editor state of one property row.

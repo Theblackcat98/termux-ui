@@ -9,10 +9,10 @@ import (
 
 	"github.com/charmbracelet/bubbletea"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/catalog"
-	"github.com/DevCoreXOfficial/termux-ui/internal/extrakeys"
-	"github.com/DevCoreXOfficial/termux-ui/internal/termuxconf"
-	"github.com/DevCoreXOfficial/termux-ui/internal/ui"
+	"github.com/Theblackcat98/termux-ui/internal/catalog"
+	"github.com/Theblackcat98/termux-ui/internal/extrakeys"
+	"github.com/Theblackcat98/termux-ui/internal/termuxconf"
+	"github.com/Theblackcat98/termux-ui/internal/ui"
 )
 
 // ekCellEditor is the modal form for one grid cell.

@@ -11,7 +11,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/app"
+	"github.com/Theblackcat98/termux-ui/internal/app"
 )
 
 var version = "dev"

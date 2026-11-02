@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/extrakeys"
+	"github.com/Theblackcat98/termux-ui/internal/extrakeys"
 )
 
 func TestPresetsSerializeAndRoundTrip(t *testing.T) {

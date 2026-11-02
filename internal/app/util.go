@@ -13,8 +13,8 @@ import (
 	"github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/termuxconf"
-	"github.com/DevCoreXOfficial/termux-ui/internal/ui"
+	"github.com/Theblackcat98/termux-ui/internal/termuxconf"
+	"github.com/Theblackcat98/termux-ui/internal/ui"
 )
 
 // timeNow is indirected for tests.
