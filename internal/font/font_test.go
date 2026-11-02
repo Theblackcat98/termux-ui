@@ -3,8 +3,14 @@ package font
 import (
 	"archive/zip"
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -84,5 +90,59 @@ func TestInstallWritesAndBacksUp(t *testing.T) {
 	}
 	if err := Install([]byte("not a font")); err == nil {
 		t.Fatal("garbage must be rejected before touching font.ttf")
+	}
+}
+
+func TestFetchSizeLimit(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Write 150MB + 2 bytes to exceed limit
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", 150*1024*1024+2))
+		buf := make([]byte, 1024*1024)
+		for i := 0; i < 151; i++ {
+			w.Write(buf)
+		}
+	}))
+	defer ts.Close()
+
+	_, err := fetch(ts.URL, "")
+	if err == nil {
+		t.Fatal("expected error due to size limit, got nil")
+	}
+	if !strings.Contains(err.Error(), "exceeded size limit") && !strings.Contains(err.Error(), "unexpected EOF") {
+		t.Fatalf("expected size limit error, got: %v", err)
+	}
+}
+
+func TestFetchSha256Mismatch(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("some data"))
+	}))
+	defer ts.Close()
+
+	_, err := fetch(ts.URL, "invalidhash")
+	if err == nil {
+		t.Fatal("expected error due to sha256 mismatch, got nil")
+	}
+	if !strings.Contains(err.Error(), "sha256 mismatch") {
+		t.Fatalf("expected sha256 mismatch error, got: %v", err)
+	}
+}
+
+func TestFetchSuccess(t *testing.T) {
+	content := []byte("valid font data")
+	hash := sha256.Sum256(content)
+	expectedHash := hex.EncodeToString(hash[:])
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write(content)
+	}))
+	defer ts.Close()
+
+	data, err := fetch(ts.URL, expectedHash)
+	if err != nil {
+		t.Fatalf("expected success, got error: %v", err)
+	}
+	if !bytes.Equal(data, content) {
+		t.Fatalf("expected %q, got %q", content, data)
 	}
 }

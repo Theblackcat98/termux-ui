@@ -6,6 +6,8 @@ package font
 import (
 	"archive/zip"
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -23,6 +25,7 @@ type Entry struct {
 	URL         string
 	ZipMember   string // when the URL is a zip: preferred member name prefix
 	Recommended bool   // recommended for powerlevel10k
+	Sha256      string // expected SHA256 hex digest of the response
 }
 
 const p10kMedia = "https://github.com/romkatv/powerlevel10k-media/raw/master/"
@@ -30,14 +33,14 @@ const p10kMedia = "https://github.com/romkatv/powerlevel10k-media/raw/master/"
 // Catalog lists the fonts offered on Screen 5.
 func Catalog() []Entry {
 	return []Entry{
-		{Name: "MesloLGS NF Regular", URL: p10kMedia + "MesloLGS%20NF%20Regular.ttf", Recommended: true},
-		{Name: "MesloLGS NF Bold", URL: p10kMedia + "MesloLGS%20NF%20Bold.ttf"},
-		{Name: "MesloLGS NF Italic", URL: p10kMedia + "MesloLGS%20NF%20Italic.ttf"},
-		{Name: "MesloLGS NF Bold Italic", URL: p10kMedia + "MesloLGS%20NF%20BoldItalic.ttf"},
-		{Name: "JetBrainsMono NF", URL: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip", ZipMember: "JetBrainsMonoNerdFont-Regular"},
-		{Name: "FiraCode NF", URL: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip", ZipMember: "FiraCodeNerdFont-Regular"},
-		{Name: "CaskaydiaCove NF", URL: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip", ZipMember: "CaskaydiaCoveNerdFont-Regular"},
-		{Name: "Hack NF", URL: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.zip", ZipMember: "HackNerdFont-Regular"},
+		{Name: "MesloLGS NF Regular", URL: p10kMedia + "MesloLGS%20NF%20Regular.ttf", Sha256: "d97946186e97f8d7c0139e8983abf40a1d2d086924f2c5dbf1c29bd8f2c6e57d", Recommended: true},
+		{Name: "MesloLGS NF Bold", URL: p10kMedia + "MesloLGS%20NF%20Bold.ttf", Sha256: "b6c0199cf7c7483c8343ea020658925e6de0aeb318b89908152fcb4d19226003"},
+		{Name: "MesloLGS NF Italic", URL: p10kMedia + "MesloLGS%20NF%20Italic.ttf", Sha256: "6f357bcbe2597704e157a915625928bca38364a89c22a4ac36e7a116dcd392ef"},
+		{Name: "MesloLGS NF Bold Italic", URL: p10kMedia + "MesloLGS%20NF%20Bold%20Italic.ttf", Sha256: "56b4131adecec052c4b324efb818dd326d586dbc316fc68f98f1cae2eb8d1220"},
+		{Name: "JetBrainsMono NF", URL: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/JetBrainsMono.zip", ZipMember: "JetBrainsMonoNerdFont-Regular", Sha256: "fab782a66f7d3019da64f6572db9fc5d3a4bcb19f9fa13e2d8a62e3693d6396e"},
+		{Name: "FiraCode NF", URL: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/FiraCode.zip", ZipMember: "FiraCodeNerdFont-Regular", Sha256: "239395baf60c89b2eaf4862b6b09db0ef95605cd3e8eef51c00345822a81a665"},
+		{Name: "CaskaydiaCove NF", URL: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/CascadiaCode.zip", ZipMember: "CaskaydiaCoveNerdFont-Regular", Sha256: "1298bf92698afa06185cf1d05e6ae05f2d8a1e8c3cb45ddf4c3035168ab342a1"},
+		{Name: "Hack NF", URL: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/Hack.zip", ZipMember: "HackNerdFont-Regular", Sha256: "fa24da7de7cefe7766614d27762570b20453c852fc1d5b657111666df9a5e449"},
 	}
 }
 
@@ -56,7 +59,7 @@ func Installed() (bool, int64) {
 	return true, st.Size()
 }
 
-func fetch(url string) ([]byte, error) {
+func fetch(url string, expectedSha256 string) ([]byte, error) {
 	client := &http.Client{Timeout: 5 * time.Minute}
 	resp, err := client.Get(url)
 	if err != nil {
@@ -66,7 +69,20 @@ func fetch(url string) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("download %s: HTTP %d", url, resp.StatusCode)
 	}
-	return io.ReadAll(resp.Body)
+	data, err := io.ReadAll(io.LimitReader(resp.Body, 150*1024*1024+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(data) > 150*1024*1024 {
+		return nil, fmt.Errorf("response exceeded size limit (150MB)")
+	}
+	if expectedSha256 != "" {
+		hash := sha256.Sum256(data)
+		if hex.EncodeToString(hash[:]) != expectedSha256 {
+			return nil, fmt.Errorf("sha256 mismatch")
+		}
+	}
+	return data, nil
 }
 
 // IsTTF checks TrueType/OpenType magic bytes.
@@ -134,7 +150,7 @@ func Install(data []byte) error {
 
 // InstallURL downloads url (direct TTF or zip) and installs it.
 func InstallURL(e Entry) error {
-	data, err := fetch(e.URL)
+	data, err := fetch(e.URL, e.Sha256)
 	if err != nil {
 		return err
 	}
