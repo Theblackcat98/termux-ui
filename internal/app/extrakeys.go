@@ -143,11 +143,11 @@ func (s *ekScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 				s.diffPager.Up()
 			case "down", "j":
 				s.diffPager.Down()
-			case "y":
+			case "y", "Y":
 				fn := s.diffCommit
 				s.diffPager, s.diffCommit = nil, nil
 				return fn(a)
-			case "n", "esc", "q":
+			case "n", "N", "esc", "q":
 				s.diffPager, s.diffCommit = nil, nil
 				a.ToastInfo("cancelled — nothing written")
 			}
