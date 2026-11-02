@@ -30,6 +30,21 @@ type ekCellEditor struct {
 	paletteForPop bool
 }
 
+func (e *ekCellEditor) focusedInput() *ui.TextInput {
+	switch e.field {
+	case 1:
+		return &e.value
+	case 2:
+		return &e.display
+	case 4:
+		return &e.popupValue
+	case 5:
+		return &e.popupDisplay
+	default:
+		return nil
+	}
+}
+
 func newEkCellEditor(cell extrakeys.Cell) *ekCellEditor {
 	e := &ekCellEditor{}
 	switch cell.Kind {
@@ -308,16 +323,18 @@ func (s *ekScreen) updateEditor(a *App, key string) tea.Cmd {
 	case "left":
 		if e.field == 0 && e.kind > 0 {
 			e.kind--
-		}
-		if e.field == 3 && e.popupKind > 0 {
+		} else if e.field == 3 && e.popupKind > 0 {
 			e.popupKind--
+		} else if t := e.focusedInput(); t != nil {
+			typeInto(t, key)
 		}
 	case "right":
 		if e.field == 0 && e.kind < 2 {
 			e.kind++
-		}
-		if e.field == 3 && e.popupKind < 2 {
+		} else if e.field == 3 && e.popupKind < 2 {
 			e.popupKind++
+		} else if t := e.focusedInput(); t != nil {
+			typeInto(t, key)
 		}
 	case "enter":
 		switch e.field {
@@ -342,28 +359,14 @@ func (s *ekScreen) updateEditor(a *App, key string) tea.Cmd {
 		}
 		s.layout.Rows[s.editorAt[0]][s.editorAt[1]] = cell
 		s.editor = nil
-	case "backspace":
-		switch e.field {
-		case 1:
-			e.value.Backspace()
-		case 2:
-			e.display.Backspace()
-		case 4:
-			e.popupValue.Backspace()
-		case 5:
-			e.popupDisplay.Backspace()
+	case "backspace", "delete":
+		if t := e.focusedInput(); t != nil {
+			typeInto(t, key)
 		}
 	default:
 		if len(key) == 1 {
-			switch e.field {
-			case 1:
-				e.value.Insert([]rune(key)[0])
-			case 2:
-				e.display.Insert([]rune(key)[0])
-			case 4:
-				e.popupValue.Insert([]rune(key)[0])
-			case 5:
-				e.popupDisplay.Insert([]rune(key)[0])
+			if t := e.focusedInput(); t != nil {
+				typeInto(t, key)
 			}
 		}
 	}
