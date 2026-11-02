@@ -134,12 +134,23 @@ func (c *colorsTab) Update(a *App, msg tea.Msg) tea.Cmd {
 
 	if c.pager != nil {
 		switch key {
-		case "up":
+		case "up", "k":
 			c.pager.Up()
-		case "down":
+		case "down", "j":
 			c.pager.Down()
-		case "esc", "q":
-			c.pager = nil
+		case "pgup":
+			c.pager.PageUp()
+		case "pgdn":
+			c.pager.PageDown()
+		case "y", "Y":
+			fn := c.pending
+			c.pager, c.pending = nil, nil
+			if fn != nil {
+				return fn(a)
+			}
+		case "n", "N", "esc", "q":
+			c.pager, c.pending = nil, nil
+			a.ToastInfo("cancelled — nothing written")
 		}
 		return nil
 	}
@@ -225,11 +236,7 @@ func (c *colorsTab) Update(a *App, msg tea.Msg) tea.Cmd {
 		if th == nil {
 			return nil
 		}
-		c.confirm = ui.NewConfirm(
-			"Apply theme "+th.Name+"?",
-			"Backs up ~/.termux/colors.properties and runs termux-reload-settings.",
-			"y confirm · n cancel")
-		c.pending = func(m *App) tea.Cmd { return applyThemeCmd(m, th.Name+" (bundled)", th) }
+		return c.previewThemeDiff(a, th.Name+" (bundled)", th)
 	case "c":
 		base := c.current
 		if base == nil {
@@ -315,7 +322,7 @@ func (c *colorsTab) applyCustom(a *App) tea.Cmd {
 		a.ToastError(err.Error())
 		return nil
 	}
-	return applyThemeCmd(a, "custom editor", th)
+	return c.previewThemeDiff(a, "custom editor", th)
 }
 
 func defaultTheme() *theme.Theme {
@@ -330,13 +337,27 @@ func defaultTheme() *theme.Theme {
 	return th
 }
 
+func (c *colorsTab) previewThemeDiff(a *App, source string, th *theme.Theme) tea.Cmd {
+	path := theme.ColorsPath()
+	oldData, _ := os.ReadFile(path)
+	newContent := th.Render()
+	diff := termuxDiff(string(oldData), newContent)
+	if diff == "" {
+		a.ToastInfo("nothing to change")
+		return nil
+	}
+	c.pager = ui.NewPager("unified diff — exactly the lines that change", diff)
+	c.pager.Height = clampI(a.height-8, 6, 40)
+	c.pending = func(m *App) tea.Cmd {
+		return applyThemeCmd(m, source, th)
+	}
+	return nil
+}
+
 func applyThemeCmd(a *App, source string, th *theme.Theme) tea.Cmd {
 	return func() tea.Msg {
 		path := theme.ColorsPath()
-		oldData, _ := os.ReadFile(path)
 		newContent := th.Render()
-		diff := termuxDiff(string(oldData), newContent)
-		_ = diff
 		if _, err := saveWithBackup(path, newContent); err != nil {
 			return childDone{title: "apply theme", err: err}
 		}
@@ -392,7 +413,7 @@ func (c *colorsTab) View(w int) string {
 		out += "\n" + c.confirm.View(clampI(w-4, 30, 140)) + "\n"
 	}
 	if c.pager != nil {
-		out += "\n" + c.pager.View(w)
+		return overlay(out, c.pager.View(w), w) + "\n y apply & reload · n cancel\n"
 	}
 	return out
 }
