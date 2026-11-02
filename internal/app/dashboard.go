@@ -1,6 +1,8 @@
 package app
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -59,7 +61,10 @@ func checkUpdateCmd(state *State) tea.Cmd {
 // selfUpdateCmd downloads the matching release binary and swaps it in.
 func selfUpdateCmd(latest string) tea.Cmd {
 	arch := runtime.GOARCH
-	asset := fmt.Sprintf("https://github.com/DevCoreXOfficial/termux-ui/releases/latest/download/termux-ui_linux_%s", arch)
+	assetName := fmt.Sprintf("termux-ui_linux_%s", arch)
+	asset := fmt.Sprintf("https://github.com/DevCoreXOfficial/termux-ui/releases/latest/download/%s", assetName)
+	sumsURL := "https://github.com/DevCoreXOfficial/termux-ui/releases/latest/download/sha256sums"
+
 	return func() tea.Msg {
 		prefix := os.Getenv("PREFIX")
 		if prefix == "" {
@@ -68,6 +73,34 @@ func selfUpdateCmd(latest string) tea.Cmd {
 		target := filepath.Join(prefix, "bin", "termux-ui")
 		tmp := target + ".download"
 		client := &http.Client{Timeout: 10 * time.Minute}
+
+		// 1. Fetch checksums
+		respSums, err := client.Get(sumsURL)
+		if err != nil {
+			return childDone{title: "self-update", err: fmt.Errorf("failed to fetch checksums: %w", err)}
+		}
+		defer respSums.Body.Close()
+		if respSums.StatusCode != http.StatusOK {
+			return childDone{title: "self-update", err: fmt.Errorf("checksum download failed: HTTP %d", respSums.StatusCode)}
+		}
+		sumsData, err := io.ReadAll(respSums.Body)
+		if err != nil {
+			return childDone{title: "self-update", err: fmt.Errorf("failed to read checksums: %w", err)}
+		}
+
+		var expectedHash string
+		for _, line := range strings.Split(string(sumsData), "\n") {
+			parts := strings.Fields(line)
+			if len(parts) == 2 && strings.HasSuffix(parts[1], assetName) {
+				expectedHash = parts[0]
+				break
+			}
+		}
+		if expectedHash == "" {
+			return childDone{title: "self-update", err: fmt.Errorf("checksum for %s not found in release", assetName)}
+		}
+
+		// 2. Download and verify binary
 		resp, err := client.Get(asset)
 		if err != nil {
 			return childDone{title: "self-update", err: err}
@@ -76,13 +109,37 @@ func selfUpdateCmd(latest string) tea.Cmd {
 		if resp.StatusCode != http.StatusOK {
 			return childDone{title: "self-update", err: fmt.Errorf("download failed: HTTP %d", resp.StatusCode)}
 		}
-		data, err := io.ReadAll(resp.Body)
+
+		// Bound the download to 50MB to prevent memory exhaustion and large files
+		limitReader := io.LimitReader(resp.Body, 50*1024*1024)
+
+		data, err := io.ReadAll(limitReader)
 		if err != nil {
 			return childDone{title: "self-update", err: err}
 		}
+
+		// Check if we hit the limit
+		if len(data) >= 50*1024*1024 {
+			return childDone{title: "self-update", err: fmt.Errorf("download exceeded maximum size limit of 50MB")}
+		}
+
+		hash := sha256.Sum256(data)
+		actualHash := hex.EncodeToString(hash[:])
+
+		if actualHash != expectedHash {
+			return childDone{title: "self-update", err: fmt.Errorf("checksum mismatch: expected %s, got %s", expectedHash, actualHash)}
+		}
+
 		if err := os.WriteFile(tmp, data, 0o755); err != nil {
 			return childDone{title: "self-update", err: err}
 		}
+
+		// 3. Validate the binary works
+		if err := exec.Command(tmp, "--version").Run(); err != nil {
+			os.Remove(tmp)
+			return childDone{title: "self-update", err: fmt.Errorf("downloaded binary failed validation: %w", err)}
+		}
+
 		if err := os.Rename(tmp, target); err != nil {
 			os.Remove(tmp)
 			return childDone{title: "self-update", err: err}
