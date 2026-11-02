@@ -29,6 +29,7 @@ type propDef struct {
 	Note     string   // fixed warning/help text
 	Danger   bool     // requires typed confirmation to enable
 	Restart  bool     // restart-required after change
+	Browser  string   // "dir" to use a directory browser
 	Validate func(string) error
 }
 
@@ -68,7 +69,7 @@ var propGroups = []struct {
 	{
 		Title: "General",
 		Props: []propDef{
-			{Key: "default-working-directory", Kind: kText, Def: homeDir,
+			{Key: "default-working-directory", Kind: kText, Def: homeDir, Browser: "dir",
 				Note: "Absolute path; relative paths are rejected", Validate: validateAbsDir},
 			{Key: "terminal-transcript-rows", Kind: kNumber, Def: "2000", Min: 0, Max: 50000, WarnOver: 10000,
 				Note: "large buffers slow scrolling"},

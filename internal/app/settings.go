@@ -48,6 +48,7 @@ type settingsScreen struct {
 	dangerIdx   [2]int // group, field being danger-enabled
 	diffPager   *ui.Pager
 	diffCommit  func(a *App) tea.Cmd
+	browser     *ui.Browser
 }
 
 func newSettingsScreen(a *App) *settingsScreen {
@@ -102,7 +103,7 @@ func (s *settingsScreen) load() {
 
 func (s *settingsScreen) Title() string { return "Termux Settings" }
 func (s *settingsScreen) WantsGlobalKeys() bool {
-	return s.confirm == nil && s.dangerInput == nil && s.diffPager == nil
+	return s.confirm == nil && s.dangerInput == nil && s.diffPager == nil && s.browser == nil
 }
 
 func (s *settingsScreen) modifiedCount() int {
@@ -132,6 +133,11 @@ func (s *settingsScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 
 	case tea.KeyMsg:
 		key := t.String()
+
+		if s.browser != nil {
+			s.browser.Update(key)
+			return nil
+		}
 
 		if s.dangerInput != nil {
 			switch key {
@@ -223,6 +229,25 @@ func (s *settingsScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 			if f == nil {
 				break
 			}
+
+			if f.def.Browser == "dir" && (key == "enter" || key == " ") {
+				s.browser = ui.NewBrowser(f.text.String(), "Select Directory", true)
+				s.browser.OnSelect = func(p string) {
+					f.text.Set(p)
+					f.text.Err = ""
+					if f.def.Validate != nil {
+						if err := f.def.Validate(p); err != nil {
+							f.text.Err = err.Error()
+						}
+					}
+					s.browser = nil
+				}
+				s.browser.OnCancel = func() {
+					s.browser = nil
+				}
+				return nil
+			}
+
 			switch f.def.Kind {
 			case kToggle:
 				if f.def.Danger && !f.toggle.Value {
@@ -452,6 +477,11 @@ func (s *settingsScreen) View() string {
 	modified := s.modifiedCount()
 	status := fmt.Sprintf("Modified: %d   S save (diff → confirm → backup → reload)   E open in $EDITOR", modified)
 	out := lipJoin(fixedWidth(left, leftW), right, w) + "\n" + ui.SubtleStyle.Render(status) + "\n"
+
+	if s.browser != nil {
+		return overlay(out, s.browser.View(clampI(w-8, 40, 120)), w)
+	}
+
 	if s.dangerInput != nil {
 		box := "Confirm security risk — type 'yes' to enable:\n" + s.dangerInput.View(true)
 		out = overlay(out, ui.BoxStyle.Width(clampI(w-8, 24, 120)).Render(box), w)

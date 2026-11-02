@@ -79,8 +79,7 @@ type colorsTab struct {
 	customOpen bool
 	fields     []hexField
 	fieldIx    int
-	importOpen bool
-	importPath ui.TextInput
+	browser    *ui.Browser
 	confirm    *ui.Confirm
 	pending    func(a *App) tea.Cmd
 	pager      *ui.Pager
@@ -113,7 +112,7 @@ func (c *colorsTab) loadCurrent() {
 }
 
 func (c *colorsTab) busy() bool {
-	return c.customOpen || c.importOpen || c.confirm != nil || c.pager != nil
+	return c.customOpen || c.browser != nil || c.confirm != nil || c.pager != nil
 }
 
 func (c *colorsTab) selectedTheme() *theme.Theme {
@@ -143,33 +142,8 @@ func (c *colorsTab) Update(a *App, msg tea.Msg) tea.Cmd {
 		}
 		return nil
 	}
-	if c.importOpen {
-		switch key {
-		case "esc":
-			c.importOpen = false
-		case "enter":
-			path := strings.TrimSpace(c.importPath.String())
-			c.importOpen = false
-			if path == "" {
-				return nil
-			}
-			data, err := os.ReadFile(path)
-			if err != nil {
-				a.ToastError("read: " + err.Error())
-				return nil
-			}
-			th, err := theme.Parse(filepath.Base(path), string(data))
-			if err != nil {
-				a.ToastError("parse: " + err.Error())
-				return nil
-			}
-			c.fields = themeFields(th)
-			c.fieldIx = 0
-			c.customOpen = true
-			a.ToastGood("imported " + th.Name)
-		default:
-			typeInto(&c.importPath, key)
-		}
+	if c.browser != nil {
+		c.browser.Update(key)
 		return nil
 	}
 	if c.customOpen {
@@ -236,8 +210,32 @@ func (c *colorsTab) Update(a *App, msg tea.Msg) tea.Cmd {
 		c.fieldIx = 0
 		c.customOpen = true
 	case "i":
-		c.importOpen = true
-		c.importPath = ui.TextInput{}
+		c.browser = ui.NewBrowser("", "Import .properties", false)
+		c.browser.Filter = func(e os.DirEntry) bool {
+			return e.IsDir() || strings.HasSuffix(strings.ToLower(e.Name()), ".properties")
+		}
+		c.browser.OnSelect = func(path string) {
+			data, err := os.ReadFile(path)
+			if err != nil {
+				a.ToastError("read: " + err.Error())
+				c.browser = nil
+				return
+			}
+			th, err := theme.Parse(filepath.Base(path), string(data))
+			if err != nil {
+				a.ToastError("parse: " + err.Error())
+				c.browser = nil
+				return
+			}
+			c.fields = themeFields(th)
+			c.fieldIx = 0
+			c.customOpen = true
+			a.ToastGood("imported " + th.Name)
+			c.browser = nil
+		}
+		c.browser.OnCancel = func() {
+			c.browser = nil
+		}
 	case "R":
 		if _, err := os.Stat(theme.ColorsPath()); err != nil {
 			a.ToastInfo("no colors.properties to remove")
@@ -378,9 +376,8 @@ func (c *colorsTab) View(w int) string {
 	if c.customOpen {
 		out = overlay(out, c.customView(clampI(w-8, 34, 90)), w)
 	}
-	if c.importOpen {
-		box := "Import .properties — full path:\n" + c.importPath.View(true) + "\n\nenter load · esc cancel"
-		out = overlay(out, ui.BoxStyle.Width(clampI(w-8, 30, 100)).Render(box), w)
+	if c.browser != nil {
+		out = overlay(out, c.browser.View(clampI(w-8, 40, 100)), w)
 	}
 	if c.confirm != nil {
 		out += "\n" + c.confirm.View(clampI(w-4, 30, 140)) + "\n"
@@ -458,8 +455,7 @@ type fontDoneMsg struct {
 type fontTab struct {
 	app       *App
 	menu      *ui.Menu
-	localMode bool
-	localPath ui.TextInput
+	browser   *ui.Browser
 	confirm   *ui.Confirm
 	pending   func(a *App) tea.Cmd
 	working   bool
@@ -490,7 +486,7 @@ func (f *fontTab) rebuild() {
 	f.menu = ui.NewMenu(items)
 }
 
-func (f *fontTab) busy() bool { return f.localMode || f.confirm != nil }
+func (f *fontTab) busy() bool { return f.browser != nil || f.confirm != nil }
 
 func (f *fontTab) done(a *App, msg fontDoneMsg) tea.Cmd {
 	f.working = false
@@ -533,38 +529,8 @@ func (f *fontTab) installEntry(e font.Entry) tea.Cmd {
 func (f *fontTab) Update(a *App, msg tea.Msg) tea.Cmd {
 	if k, ok := msg.(tea.KeyMsg); ok {
 		key := k.String()
-		if f.localMode {
-			switch key {
-			case "esc":
-				f.localMode = false
-			case "enter":
-				path := strings.TrimSpace(f.localPath.String())
-				f.localMode = false
-				if path == "" {
-					return nil
-				}
-				data, err := os.ReadFile(path)
-				if err != nil {
-					a.ToastError("read: " + err.Error())
-					return nil
-				}
-				if !font.IsTTF(data) {
-					a.ToastError("not a valid TTF file")
-					return nil
-				}
-				name := filepath.Base(path)
-				return func() tea.Msg {
-					if err := font.InstallLocal(path); err != nil {
-						return fontDoneMsg{title: "install " + name, err: err}
-					}
-					if err := termuxconf.ReloadSettings(); err != nil {
-						return fontDoneMsg{title: "installed " + name, err: err}
-					}
-					return fontDoneMsg{title: "installed " + name + " — force-stop Termux if not applied", err: nil}
-				}
-			default:
-				typeInto(&f.localPath, key)
-			}
+		if f.browser != nil {
+			f.browser.Update(key)
 			return nil
 		}
 		if f.confirm != nil {
@@ -595,8 +561,40 @@ func (f *fontTab) Update(a *App, msg tea.Msg) tea.Cmd {
 			case i < len(entries):
 				return f.installEntry(entries[i])
 			case i == len(entries):
-				f.localMode = true
-				f.localPath = ui.TextInput{}
+				f.browser = ui.NewBrowser("", "Install local .ttf", false)
+				f.browser.Filter = func(e os.DirEntry) bool {
+					return e.IsDir() || strings.HasSuffix(strings.ToLower(e.Name()), ".ttf")
+				}
+				f.browser.OnSelect = func(path string) {
+					data, err := os.ReadFile(path)
+					if err != nil {
+						a.ToastError("read: " + err.Error())
+						f.browser = nil
+						return
+					}
+					if !font.IsTTF(data) {
+						a.ToastError("not a valid TTF file")
+						f.browser = nil
+						return
+					}
+					name := filepath.Base(path)
+					f.confirm = ui.NewConfirm("Install "+name+"?", "Installs as custom terminal font. A backup is kept.", "y confirm · n cancel")
+					f.pending = func(m *App) tea.Cmd {
+						return func() tea.Msg {
+							if err := font.InstallLocal(path); err != nil {
+								return fontDoneMsg{title: "install " + name, err: err}
+							}
+							if err := termuxconf.ReloadSettings(); err != nil {
+								return fontDoneMsg{title: "installed " + name, err: err}
+							}
+							return fontDoneMsg{title: "installed " + name + " — force-stop Termux if not applied", err: nil}
+						}
+					}
+					f.browser = nil
+				}
+				f.browser.OnCancel = func() {
+					f.browser = nil
+				}
 			case hasRemove && i == len(entries)+1:
 				f.confirm = ui.NewConfirm("Delete ~/.termux/font.ttf?",
 					"Returns to the built-in Termux font. A timestamped backup is kept first.", "y confirm · n cancel")
@@ -637,9 +635,8 @@ func (f *fontTab) View(w int) string {
 	if f.working {
 		b.WriteString("\n" + ui.WarnStyle.Render("downloading…"))
 	}
-	if f.localMode {
-		box := "Install local .ttf — full path:\n" + f.localPath.View(true) + "\n\nenter install · esc cancel"
-		b.WriteString("\n\n" + ui.BoxStyle.Width(clampI(w-8, 30, 100)).Render(box))
+	if f.browser != nil {
+		b.WriteString("\n\n" + f.browser.View(clampI(w-8, 40, 100)))
 	}
 	if f.confirm != nil {
 		b.WriteString("\n" + f.confirm.View(clampI(w-4, 30, 140)) + "\n")
