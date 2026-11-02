@@ -100,6 +100,53 @@ func TestSettingsScreenFormAndDiff(t *testing.T) {
 	}
 }
 
+func TestExtraKeysScreenResetsDefaults(t *testing.T) {
+	a := newTestApp(t)
+	cmd := a.jumpTo("4")
+	drainCmds(t, a, []tea.Cmd{cmd})
+	e := a.current().(*ekScreen)
+
+	// Simulate existing config with explicit non-defaults
+	os.WriteFile(e.path, []byte("extra-keys-style=none\nextra-keys-text-all-caps=false\n"), 0o600)
+
+	// The screen defaults match the built-in defaults: "default" and true
+	e.styleRadio.Set("default")
+	e.caps.Value = true
+
+	e.beginSave(a)
+	if e.diffPager == nil {
+		t.Fatal("diff review did not open")
+	}
+	drainCmds(t, a, []tea.Cmd{e.diffCommit(a)})
+
+	raw, _ := os.ReadFile(e.path)
+	doc := parseForTest(t, string(raw))
+
+	if doc.Has("extra-keys-style") {
+		t.Errorf("expected extra-keys-style to be unset, but found: %s", doc.Get("extra-keys-style", ""))
+	}
+	if doc.Has("extra-keys-text-all-caps") {
+		t.Errorf("expected extra-keys-text-all-caps to be unset, but found: %s", doc.Get("extra-keys-text-all-caps", ""))
+	}
+
+	// Now set to non-defaults
+	e.styleRadio.Set("arrows-only")
+	e.caps.Value = false
+
+	e.beginSave(a)
+	drainCmds(t, a, []tea.Cmd{e.diffCommit(a)})
+
+	raw, _ = os.ReadFile(e.path)
+	doc = parseForTest(t, string(raw))
+
+	if !doc.Has("extra-keys-style") || doc.Get("extra-keys-style", "") != "arrows-only" {
+		t.Errorf("expected extra-keys-style=arrows-only, got: %s", doc.Get("extra-keys-style", ""))
+	}
+	if !doc.Has("extra-keys-text-all-caps") || doc.Get("extra-keys-text-all-caps", "") != "false" {
+		t.Errorf("expected extra-keys-text-all-caps=false, got: %s", doc.Get("extra-keys-text-all-caps", ""))
+	}
+}
+
 func TestExtraKeysScreenSaveFlow(t *testing.T) {
 	a := newTestApp(t)
 	cmd := a.jumpTo("4")

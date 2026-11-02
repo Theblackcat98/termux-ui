@@ -439,12 +439,7 @@ func (s *ekScreen) beginSave(a *App) tea.Cmd {
 	work := termuxconf.Parse(before)
 	work.SetWrapped("extra-keys", extrakeys.Serialize(s.layout))
 	setOrCleanDefault(work, "extra-keys-style", s.styleRadio.Value(), "default")
-	newCaps := boolToProp(s.caps.Value)
-	if newCaps == "true" {
-		setOrCleanDefault(work, "extra-keys-text-all-caps", "true", "true")
-	} else {
-		work.Set("extra-keys-text-all-caps", "false")
-	}
+	setOrCleanDefault(work, "extra-keys-text-all-caps", boolToProp(s.caps.Value), "true")
 
 	newContent := work.Render()
 	diff := termuxconf.UnifiedDiff(s.path+" (current)", s.path+" (new)", before, newContent)
@@ -472,11 +467,8 @@ func (s *ekScreen) beginSave(a *App) tea.Cmd {
 
 func setOrCleanDefault(doc *termuxconf.File, key, val, def string) {
 	if val == def {
-		if doc.Has(key) && doc.Get(key, "") == def {
-			return
-		}
 		if doc.Has(key) {
-			doc.Set(key, val)
+			doc.Unset(key)
 		}
 		return
 	}
