@@ -70,6 +70,27 @@ func TestRenderRoundTrip(t *testing.T) {
 	}
 }
 
+func TestParseSeparators(t *testing.T) {
+	cases := []string{
+		"color0=#112233\nforeground #445566",
+		"color0:#112233\nforeground #445566",
+		"color0 \t : \t #112233\nforeground=#445566",
+		"color0=#112233\nforeground\t#445566",
+	}
+	for i, c := range cases {
+		th, err := Parse("test", c)
+		if err != nil {
+			t.Fatalf("case %d failed to parse: %v", i, err)
+		}
+		if th.Colors[0] != "#112233" {
+			t.Errorf("case %d: expected color0 #112233, got %s", i, th.Colors[0])
+		}
+		if th.Foreground != "#445566" {
+			t.Errorf("case %d: expected foreground #445566, got %s", i, th.Foreground)
+		}
+	}
+}
+
 func TestParseLenientDefaults(t *testing.T) {
 	th, err := Parse("partial", "color0=#111111\n")
 	if err != nil {
