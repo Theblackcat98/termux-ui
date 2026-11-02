@@ -330,6 +330,22 @@ func (p *Pager) Down() {
 		p.Offset++
 	}
 }
+func (p *Pager) PgUp() {
+	p.Offset -= p.Height
+	if p.Offset < 0 {
+		p.Offset = 0
+	}
+}
+func (p *Pager) PgDn() {
+	p.Offset += p.Height
+	max := len(p.Lines) - p.Height
+	if max < 0 {
+		max = 0
+	}
+	if p.Offset > max {
+		p.Offset = max
+	}
+}
 func (p *Pager) Top() { p.Offset = 0 }
 func (p *Pager) Bottom() {
 	max := len(p.Lines) - p.Height
