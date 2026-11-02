@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/termuxconf"
+	"github.com/Theblackcat98/termux-ui/internal/termuxconf"
 )
 
 // Entry describes one downloadable font.

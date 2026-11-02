@@ -8,7 +8,7 @@ import (
 
 	"github.com/charmbracelet/bubbletea"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/ui"
+	"github.com/Theblackcat98/termux-ui/internal/ui"
 )
 
 func (s *appsSystemScreen) Update(a *App, msg tea.Msg) tea.Cmd {

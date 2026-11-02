@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/catalog"
-	"github.com/DevCoreXOfficial/termux-ui/internal/termuxconf"
+	"github.com/Theblackcat98/termux-ui/internal/catalog"
+	"github.com/Theblackcat98/termux-ui/internal/termuxconf"
 )
 
 func catalogPresets() []catalog.Preset { return catalog.Presets }

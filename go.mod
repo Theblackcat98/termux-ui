@@ -1,4 +1,4 @@
-module github.com/DevCoreXOfficial/termux-ui
+module github.com/Theblackcat98/termux-ui
 
 go 1.26.5
 

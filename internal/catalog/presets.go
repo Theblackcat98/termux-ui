@@ -1,7 +1,7 @@
 package catalog
 
 import (
-	"github.com/DevCoreXOfficial/termux-ui/internal/extrakeys"
+	"github.com/Theblackcat98/termux-ui/internal/extrakeys"
 )
 
 // Preset is a named extra-keys layout shipped with the TUI.

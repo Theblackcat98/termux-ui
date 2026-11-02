@@ -8,7 +8,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/extrakeys"
+	"github.com/Theblackcat98/termux-ui/internal/extrakeys"
 )
 
 func newTestApp(t *testing.T) *App {

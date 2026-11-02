@@ -9,10 +9,10 @@ import (
 	"github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/font"
-	"github.com/DevCoreXOfficial/termux-ui/internal/termuxconf"
-	"github.com/DevCoreXOfficial/termux-ui/internal/theme"
-	"github.com/DevCoreXOfficial/termux-ui/internal/ui"
+	"github.com/Theblackcat98/termux-ui/internal/font"
+	"github.com/Theblackcat98/termux-ui/internal/termuxconf"
+	"github.com/Theblackcat98/termux-ui/internal/theme"
+	"github.com/Theblackcat98/termux-ui/internal/ui"
 )
 
 type tfScreen struct {

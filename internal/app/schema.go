@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/DevCoreXOfficial/termux-ui/internal/termuxconf"
+	"github.com/Theblackcat98/termux-ui/internal/termuxconf"
 )
 
 // propKind is the control type of a property field.
