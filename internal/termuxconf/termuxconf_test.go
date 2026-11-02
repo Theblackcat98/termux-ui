@@ -146,3 +146,61 @@ func TestBackupMissingFileIsNoop(t *testing.T) {
 		t.Fatalf("expected no-op backup, got %q, %v", bak, err)
 	}
 }
+
+func TestBackupSameSecond(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "termux.properties")
+
+	// Create first version
+	os.WriteFile(path, []byte("version1"), 0o600)
+
+	now := time.Date(2026, 8, 25, 12, 0, 0, 0, time.UTC)
+
+	// Backup 1
+	bak1, err := Backup(path, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantBak1 := BackupPath(path, now)
+	if bak1 != wantBak1 {
+		t.Fatalf("backup1 path %q, want %q", bak1, wantBak1)
+	}
+
+	// Modify and backup 2
+	os.WriteFile(path, []byte("version2"), 0o600)
+	bak2, err := Backup(path, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantBak2 := wantBak1 + "-1"
+	if bak2 != wantBak2 {
+		t.Fatalf("backup2 path %q, want %q", bak2, wantBak2)
+	}
+
+	// Modify and backup 3
+	os.WriteFile(path, []byte("version3"), 0o600)
+	bak3, err := Backup(path, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantBak3 := wantBak1 + "-2"
+	if bak3 != wantBak3 {
+		t.Fatalf("backup3 path %q, want %q", bak3, wantBak3)
+	}
+
+	// Check contents of backups
+	b1, _ := os.ReadFile(bak1)
+	if string(b1) != "version1" {
+		t.Fatalf("bak1 content: %q, want version1", b1)
+	}
+
+	b2, _ := os.ReadFile(bak2)
+	if string(b2) != "version2" {
+		t.Fatalf("bak2 content: %q, want version2", b2)
+	}
+
+	b3, _ := os.ReadFile(bak3)
+	if string(b3) != "version3" {
+		t.Fatalf("bak3 content: %q, want version3", b3)
+	}
+}
