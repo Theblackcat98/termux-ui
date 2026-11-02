@@ -254,11 +254,19 @@ func (m *modulesScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 		case "r":
 			m.confirmOp(a, core.VerbReinstall)
 		case "d":
+			if !a.core.Installed() {
+				a.ToastError("core not installed")
+				return nil
+			}
 			flags := m.selectedFlags(mod)
 			args := []string{"show", mod.Key}
 			args = append(args, flags...)
 			return captureCmd("core "+strings.Join(args, " "), exec.Command(a.core.Path, args...))
 		case "o":
+			if !a.core.Installed() {
+				a.ToastError("core not installed")
+				return nil
+			}
 			return a.RunChild("core open "+mod.Key, exec.Command(a.core.Path, "open", mod.Key), nil)
 		case "L":
 			if data, ok := core.LogTail(mod.Key, 500); ok {
