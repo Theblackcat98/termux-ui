@@ -158,6 +158,10 @@ func (m *modulesScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 		}
 		delete(m.errs, t.module)
 		m.live[t.module] = t.rows
+		if t.module == m.currentModule().Key {
+			rows, _ := m.rows(m.currentModule())
+			m.cursor2 = clampI(m.cursor2, 0, maxI(0, len(rows)-1))
+		}
 		return nil
 
 	case textMsg:
@@ -214,6 +218,9 @@ func (m *modulesScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 				}
 			} else {
 				m.modMenu.Up()
+				mod = m.currentModule()
+				rows, _ := m.rows(mod)
+				m.cursor2 = clampI(m.cursor2, 0, maxI(0, len(rows)-1))
 				return m.loadIfNeeded(a)
 			}
 		case "down", "j":
@@ -224,6 +231,9 @@ func (m *modulesScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 				}
 			} else {
 				m.modMenu.Down()
+				mod = m.currentModule()
+				rows, _ := m.rows(mod)
+				m.cursor2 = clampI(m.cursor2, 0, maxI(0, len(rows)-1))
 				return m.loadIfNeeded(a)
 			}
 		case "enter":
