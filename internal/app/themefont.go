@@ -38,7 +38,7 @@ func (s *tfScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 	case fontDoneMsg:
 		return s.fonts.done(a, t)
 	case tea.KeyMsg:
-		if t.String() == "tab" || t.String() == "shift+tab" {
+		if (t.String() == "tab" || t.String() == "shift+tab") && !s.colors.busy() && !s.fonts.busy() {
 			s.tab = 1 - s.tab
 			return nil
 		}
