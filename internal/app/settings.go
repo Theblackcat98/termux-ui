@@ -42,8 +42,6 @@ type settingsScreen struct {
 	focus  int // focused field inside the group
 	path   string
 
-	confirm     *ui.Confirm
-	pendingSave func(a *App) tea.Cmd
 	dangerInput *ui.TextInput
 	dangerIdx   [2]int // group, field being danger-enabled
 	diffPager   *ui.Pager
@@ -102,7 +100,7 @@ func (s *settingsScreen) load() {
 
 func (s *settingsScreen) Title() string { return "Termux Settings" }
 func (s *settingsScreen) WantsGlobalKeys() bool {
-	return s.confirm == nil && s.dangerInput == nil && s.diffPager == nil
+	return s.dangerInput == nil && s.diffPager == nil
 }
 
 func (s *settingsScreen) modifiedCount() int {
@@ -168,14 +166,6 @@ func (s *settingsScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 			case "n", "N", "esc", "q":
 				s.diffPager, s.diffCommit = nil, nil
 				a.ToastInfo("cancelled — nothing written")
-			}
-			return nil
-		}
-
-		if s.confirm != nil {
-			s.confirm.Update(key)
-			if s.confirm.Result != 0 {
-				s.confirm, s.pendingSave = nil, nil
 			}
 			return nil
 		}
@@ -451,9 +441,6 @@ func (s *settingsScreen) View() string {
 	if s.dangerInput != nil {
 		box := "Confirm security risk — type 'yes' to enable:\n" + s.dangerInput.View(true)
 		out = overlay(out, ui.BoxStyle.Width(clampI(w-8, 24, 120)).Render(box), w)
-	}
-	if s.confirm != nil {
-		out += "\n" + s.confirm.View(clampI(w-4, 30, 140)) + "\n"
 	}
 	if s.diffPager != nil {
 		return overlay(out, s.diffPager.View(w), w) + "\n y apply & reload · n cancel\n"
