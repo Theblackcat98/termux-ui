@@ -95,7 +95,6 @@ type ekScreen struct {
 	caps        ui.Toggle
 	presetOpen  bool
 	presetCur   int
-	confirm     *ui.Confirm
 	diffPager   *ui.Pager
 	diffCommit  func(a *App) tea.Cmd
 	errorsShown []error
@@ -127,7 +126,7 @@ func newExtraKeysScreen(a *App) *ekScreen {
 
 func (s *ekScreen) Title() string { return "Extra Keys Builder" }
 func (s *ekScreen) WantsGlobalKeys() bool {
-	return s.editor == nil && !s.presetOpen && s.confirm == nil && s.diffPager == nil
+	return s.editor == nil && !s.presetOpen && s.diffPager == nil
 }
 
 func (s *ekScreen) Update(a *App, msg tea.Msg) tea.Cmd {
@@ -150,18 +149,6 @@ func (s *ekScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 			case "n", "esc", "q":
 				s.diffPager, s.diffCommit = nil, nil
 				a.ToastInfo("cancelled — nothing written")
-			}
-			return nil
-		}
-		if s.confirm != nil {
-			s.confirm.Update(key)
-			if s.confirm.Result == 1 && s.diffCommit != nil {
-				fn := s.diffCommit
-				s.confirm = nil
-				return fn(a)
-			}
-			if s.confirm.Result != 0 {
-				s.confirm = nil
 			}
 			return nil
 		}
@@ -527,9 +514,6 @@ func (s *ekScreen) View() string {
 	}
 	if s.diffPager != nil {
 		return overlay(out, s.diffPager.View(w), w) + "\n y apply & reload · n cancel\n"
-	}
-	if s.confirm != nil {
-		out += "\n" + s.confirm.View(clampI(w-4, 30, 140)) + "\n"
 	}
 	return out
 }

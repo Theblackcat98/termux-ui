@@ -83,7 +83,6 @@ type colorsTab struct {
 	importPath ui.TextInput
 	confirm    *ui.Confirm
 	pending    func(a *App) tea.Cmd
-	pager      *ui.Pager
 	current    *theme.Theme
 }
 
@@ -113,7 +112,7 @@ func (c *colorsTab) loadCurrent() {
 }
 
 func (c *colorsTab) busy() bool {
-	return c.customOpen || c.importOpen || c.confirm != nil || c.pager != nil
+	return c.customOpen || c.importOpen || c.confirm != nil
 }
 
 func (c *colorsTab) selectedTheme() *theme.Theme {
@@ -132,17 +131,6 @@ func (c *colorsTab) Update(a *App, msg tea.Msg) tea.Cmd {
 	}
 	key := k.String()
 
-	if c.pager != nil {
-		switch key {
-		case "up":
-			c.pager.Up()
-		case "down":
-			c.pager.Down()
-		case "esc", "q":
-			c.pager = nil
-		}
-		return nil
-	}
 	if c.importOpen {
 		switch key {
 		case "esc":
@@ -390,9 +378,6 @@ func (c *colorsTab) View(w int) string {
 	}
 	if c.confirm != nil {
 		out += "\n" + c.confirm.View(clampI(w-4, 30, 140)) + "\n"
-	}
-	if c.pager != nil {
-		out += "\n" + c.pager.View(w)
 	}
 	return out
 }
