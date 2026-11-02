@@ -231,7 +231,7 @@ func (a *App) View() string {
 	b.WriteString("\n")
 	b.WriteString(a.footer(a.current().FooterHints()))
 	if a.showHelp {
-		b.WriteString("\n" + helpOverlay())
+		b.WriteString("\n" + helpOverlay(a.width))
 	}
 	return b.String()
 }
@@ -245,8 +245,15 @@ func (s *tfScreen) FooterHints() string         { return "tab tabs · enter appl
 func (s *shellScreen) FooterHints() string      { return "enter run · ←/→ pick shell" }
 func (s *appsSystemScreen) FooterHints() string { return "enter run step" }
 
-func helpOverlay() string {
-	return ui.BoxStyle.Width(64).Render(
+func helpOverlay(width int) string {
+	w := 64
+	if width > 0 && width < w+2 {
+		w = width - 2
+	}
+	if w < 1 {
+		w = 1
+	}
+	return ui.BoxStyle.Width(w).Render(
 		ui.TitleStyle.Render("termux-ui — global keys") + "\n" +
 			"1–7  jump to screens\n" +
 			"↑/↓ j/k  move · enter select · esc back\n" +
