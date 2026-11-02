@@ -161,6 +161,10 @@ func (s *settingsScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 				s.diffPager.Up()
 			case "down", "j":
 				s.diffPager.Down()
+			case "pgup":
+				s.diffPager.PageUp()
+			case "pgdn":
+				s.diffPager.PageDown()
 			case "y", "Y":
 				fn := s.diffCommit
 				s.diffPager, s.diffCommit = nil, nil
