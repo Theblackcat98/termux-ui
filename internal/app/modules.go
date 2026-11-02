@@ -173,10 +173,9 @@ func (m *modulesScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 			case "down", "j":
 				m.pager.Down()
 			case "pgup":
-				m.pager.Offset = maxI(0, m.pager.Offset-m.pager.Height)
+				m.pager.PgUp()
 			case "pgdn":
-				m.pager.Down()
-				m.pager.Down()
+				m.pager.PgDn()
 			case "g", "home":
 				m.pager.Top()
 			case "G", "end":

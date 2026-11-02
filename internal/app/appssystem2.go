@@ -32,9 +32,9 @@ func (s *appsSystemScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 			case "down", "j":
 				s.pager.Down()
 			case "pgup":
-				s.pager.Up()
+				s.pager.PgUp()
 			case "pgdn":
-				s.pager.Down()
+				s.pager.PgDn()
 			case "esc", "q", "enter":
 				s.pager = nil
 			}

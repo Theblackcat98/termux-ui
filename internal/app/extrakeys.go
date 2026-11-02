@@ -143,6 +143,10 @@ func (s *ekScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 				s.diffPager.Up()
 			case "down", "j":
 				s.diffPager.Down()
+			case "pgup":
+				s.diffPager.PgUp()
+			case "pgdn":
+				s.diffPager.PgDn()
 			case "y":
 				fn := s.diffCommit
 				s.diffPager, s.diffCommit = nil, nil
