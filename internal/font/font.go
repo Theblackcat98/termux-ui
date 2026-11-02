@@ -159,7 +159,11 @@ func InstallLocal(path string) error {
 // RemoveFont deletes ~/.termux/font.ttf after confirm (caller confirms),
 // restoring the built-in Termux font.
 func RemoveFont() error {
-	err := os.Remove(FontPath())
+	path := FontPath()
+	if _, err := termuxconf.Backup(path, time.Now()); err != nil {
+		return err
+	}
+	err := os.Remove(path)
 	if os.IsNotExist(err) {
 		return nil
 	}
