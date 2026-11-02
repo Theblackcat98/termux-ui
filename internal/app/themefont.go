@@ -74,17 +74,19 @@ func (s *tfScreen) View() string {
 // ---------------- Colors tab ----------------
 
 type colorsTab struct {
-	app        *App
-	gallery    *ui.Menu
-	customOpen bool
-	fields     []hexField
-	fieldIx    int
-	importOpen bool
-	importPath ui.TextInput
-	confirm    *ui.Confirm
-	pending    func(a *App) tea.Cmd
-	pager      *ui.Pager
-	current    *theme.Theme
+	app         *App
+	gallery     *ui.Menu
+	customOpen  bool
+	fields      []hexField
+	fieldIx     int
+	paletteOpen bool
+	paletteCur  int
+	importOpen  bool
+	importPath  ui.TextInput
+	confirm     *ui.Confirm
+	pending     func(a *App) tea.Cmd
+	pager       *ui.Pager
+	current     *theme.Theme
 }
 
 type hexField struct {
@@ -172,6 +174,35 @@ func (c *colorsTab) Update(a *App, msg tea.Msg) tea.Cmd {
 		}
 		return nil
 	}
+	if c.paletteOpen {
+		switch key {
+		case "up", "k":
+			if c.paletteCur >= 16 {
+				c.paletteCur -= 16
+			}
+		case "down", "j":
+			if c.paletteCur < 240 {
+				c.paletteCur += 16
+			}
+		case "left", "h":
+			if c.paletteCur%16 > 0 {
+				c.paletteCur--
+			}
+		case "right", "l":
+			if c.paletteCur%16 < 15 {
+				c.paletteCur++
+			}
+		case "esc", "q":
+			c.paletteOpen = false
+		case "enter":
+			if c.fieldIx < len(c.fields) {
+				c.fields[c.fieldIx].input.Set(paletteColors()[c.paletteCur])
+				c.fields[c.fieldIx].input.Err = ""
+			}
+			c.paletteOpen = false
+		}
+		return nil
+	}
 	if c.customOpen {
 		switch key {
 		case "up":
@@ -185,7 +216,35 @@ func (c *colorsTab) Update(a *App, msg tea.Msg) tea.Cmd {
 		case "tab":
 			c.fieldIx = (c.fieldIx + 1) % (len(c.fields) + 1)
 		case "enter":
-			c.applyCustom(a)
+			if c.fieldIx >= len(c.fields) {
+				c.applyCustom(a)
+			} else {
+				c.paletteOpen = true
+				c.paletteCur = 0
+				if v := c.fields[c.fieldIx].input.String(); theme.ValidHex(v) {
+					v = strings.ToUpper(v)
+					for i, pc := range paletteColors() {
+						if pc == v {
+							c.paletteCur = i
+							break
+						}
+					}
+				}
+			}
+		case "p":
+			if c.fieldIx < len(c.fields) {
+				c.paletteOpen = true
+				c.paletteCur = 0
+				if v := c.fields[c.fieldIx].input.String(); theme.ValidHex(v) {
+					v = strings.ToUpper(v)
+					for i, pc := range paletteColors() {
+						if pc == v {
+							c.paletteCur = i
+							break
+						}
+					}
+				}
+			}
 		case "esc":
 			c.customOpen = false
 		default:
@@ -248,6 +307,34 @@ func (c *colorsTab) Update(a *App, msg tea.Msg) tea.Cmd {
 		c.pending = func(m *App) tea.Cmd { return deleteThemeCmd(m) }
 	}
 	return nil
+}
+
+var _paletteColors []string
+
+func paletteColors() []string {
+	if _paletteColors != nil {
+		return _paletteColors
+	}
+	var colors []string
+	standard := []string{
+		"#000000", "#800000", "#008000", "#808000", "#000080", "#800080", "#008080", "#C0C0C0",
+		"#808080", "#FF0000", "#00FF00", "#FFFF00", "#0000FF", "#FF00FF", "#00FFFF", "#FFFFFF",
+	}
+	colors = append(colors, standard...)
+	steps := []int{0x00, 0x5F, 0x87, 0xAF, 0xD7, 0xFF}
+	for r := 0; r < 6; r++ {
+		for g := 0; g < 6; g++ {
+			for b := 0; b < 6; b++ {
+				colors = append(colors, fmt.Sprintf("#%02X%02X%02X", steps[r], steps[g], steps[b]))
+			}
+		}
+	}
+	for i := 0; i < 24; i++ {
+		v := 8 + i*10
+		colors = append(colors, fmt.Sprintf("#%02X%02X%02X", v, v, v))
+	}
+	_paletteColors = colors
+	return colors
 }
 
 func validateHexInput(v string) string {
@@ -378,6 +465,9 @@ func (c *colorsTab) View(w int) string {
 	if c.customOpen {
 		out = overlay(out, c.customView(clampI(w-8, 34, 90)), w)
 	}
+	if c.paletteOpen {
+		out = overlay(out, c.paletteView(w), w)
+	}
 	if c.importOpen {
 		box := "Import .properties — full path:\n" + c.importPath.View(true) + "\n\nenter load · esc cancel"
 		out = overlay(out, ui.BoxStyle.Width(clampI(w-8, 30, 100)).Render(box), w)
@@ -422,6 +512,38 @@ func (c *colorsTab) previewView(width int) string {
 	return b.String()
 }
 
+func (c *colorsTab) paletteView(w int) string {
+	colors := paletteColors()
+	var b strings.Builder
+	b.WriteString(ui.TitleStyle.Render("256-Color Palette") + "\n\n")
+
+	for row := 0; row < 16; row++ {
+		for col := 0; col < 16; col++ {
+			i := row*16 + col
+			hex := colors[i]
+			bg := lipgloss.Color(hex)
+			var r, g, bl uint8
+			fmt.Sscanf(hex, "#%02x%02x%02x", &r, &g, &bl)
+			lum := 0.299*float64(r) + 0.587*float64(g) + 0.114*float64(bl)
+			fg := lipgloss.Color("#FFFFFF")
+			if lum > 128 {
+				fg = lipgloss.Color("#000000")
+			}
+			st := lipgloss.NewStyle().Background(bg).Foreground(fg)
+			if i == c.paletteCur {
+				b.WriteString(st.Render("><"))
+			} else {
+				b.WriteString(st.Render("  "))
+			}
+		}
+		b.WriteString("\n")
+	}
+
+	b.WriteString("\n" + ui.KeyStyle.Render("Selected: ") + colors[c.paletteCur] + "\n\n")
+	b.WriteString(ui.SubtleStyle.Render("enter select · esc cancel · arrows navigate"))
+	return ui.BoxStyle.Width(clampI(w-6, 38, 42)).Render(b.String())
+}
+
 func (c *colorsTab) customView(w int) string {
 	var b strings.Builder
 	b.WriteString(ui.TitleStyle.Render("Custom editor — 19 values (#RRGGBB)") + "\n\n")
@@ -444,7 +566,7 @@ func (c *colorsTab) customView(w int) string {
 	} else {
 		b.WriteString("  " + ui.SubtleStyle.Render("[ Save & apply ]"))
 	}
-	b.WriteString("\n\n" + ui.SubtleStyle.Render("tab jumps to Save · enter saves · esc back"))
+	b.WriteString("\n\n" + ui.SubtleStyle.Render("tab jumps to Save · enter/p palette · esc back"))
 	return ui.BoxStyle.Width(clampI(w-6, 32, 88)).Render(b.String())
 }
 
