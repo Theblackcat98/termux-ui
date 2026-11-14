@@ -56,9 +56,6 @@ var restartRequired = map[string]bool{
 	"terminal-cursor-blink-rate": true,
 }
 
-// homeDirDefault resolves at call time ($HOME).
-func homeDirDefault() string { return homeDir }
-
 // propGroups is the §5.3 schema: groups and their fields.
 var propGroups = []struct {
 	Title string
