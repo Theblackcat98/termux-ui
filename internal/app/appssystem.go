@@ -268,7 +268,7 @@ func (s *appsSystemScreen) sshRows() []actionRow {
 			if sc, ok := m.current().(*appsSystemScreen); ok {
 				sc.passwdOpen = true
 				sc.passwd = ui.TextInput{Masked: true}
-				m.ToastWarn("Type the password, then enter — retype it when passwd asks")
+				m.ToastWarn("Type the password, then enter")
 			}
 			return nil
 		}},

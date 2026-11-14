@@ -93,8 +93,8 @@ func (s *appsSystemScreen) Update(a *App, msg tea.Msg) tea.Cmd {
 					a.ToastError("password too short")
 					return nil
 				}
-				cmd := exec.Command("sh", "-c", `stty -echo; printf 'New password: '; read -r p1; printf '\nRetype: '; read -r p2; [ "$p1" = "$p2" ] && printf '%s\n%s\n' "$p1" "$p1" | passwd || { echo mismatch; exit 1; }`)
-				cmd.Env = append(os.Environ(), "TUI_SUGGESTED_PW="+pw)
+				cmd := exec.Command("passwd")
+				cmd.Stdin = strings.NewReader(pw + "\n" + pw + "\n")
 				return a.RunChild("passwd", cmd, func(m *App, err error) tea.Cmd { return m.current().Update(m, refreshMsg{}) })
 			default:
 				typeInto(&s.passwd, key)
@@ -162,7 +162,7 @@ func (s *appsSystemScreen) View() string {
 
 	out := b.String()
 	if s.passwdOpen {
-		box := "Set SSH password (masked):\n" + s.passwd.View(true) + "\n\nenter → passwd prompts · esc cancel"
+		box := "Set SSH password (masked):\n" + s.passwd.View(true) + "\n\nenter → save · esc cancel"
 		out = overlay(out, ui.BoxStyle.Width(clampI(w-8, 30, 90)).Render(box), w)
 	}
 	if s.bootNameOpen {
