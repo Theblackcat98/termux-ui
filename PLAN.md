@@ -254,7 +254,7 @@ Shortcut inputs validated against the `ctrl + <key>` form; invalid entries block
 
 | Element | Behavior |
 |---|---|
-| Font list | MesloLGS NF Regular/Bold/Italic/BoldItalic (recommended for powerlevel10k — direct TTF URLs from `romkatv/powerlevel10k-media`), JetBrainsMono NF, FiraCode NF, CaskaydiaCove NF, Hack NF (from `ryanoasis/nerd-fonts` release zips — requires `unzip`, auto-installed via `pkg install unzip -y` if missing) |
+| Font list | MesloLGS NF Regular/Bold/Italic/BoldItalic (recommended for powerlevel10k — direct TTF URLs from `romkatv/powerlevel10k-media`), JetBrainsMono NF, FiraCode NF, CaskaydiaCove NF, Hack NF (from `ryanoasis/nerd-fonts` release zips — unpacked natively in Go) |
 | Install | Download → write `~/.termux/font.ttf` → `termux-reload-settings` → note "if not applied immediately, force-stop Termux" |
 | Local file | Pick any local `.ttf` via file browser and install the same way |
 | Remove font | Delete `~/.termux/font.ttf` after confirm (returns to built-in font) |
@@ -300,7 +300,7 @@ Note shown once: companion apps must come from **F-Droid** (Play Store builds ar
 1. `pkg install openssh -y`
 2. Set password — masked input → `chpasswd`-equivalent via `passwd` exec (or writes via `chpasswd` if available; fallback: instruct manual `passwd`)
 3. Start: `sshd` — status check: `pgrep sshd`
-4. Info panel: port **8020**, login `ssh -p 8020 <user>@<phone-ip>` (IP from `ifconfig`/`ip addr` parse), warning "sshd dies on reboot — add to boot scripts (S4)"
+4. Info panel: port read from sshd_config (default **8022**), login `ssh -p <port> <user>@<phone-ip>` (IP from `ifconfig`/`ip addr` parse), warning "sshd dies on reboot — add to boot scripts (S4)"
 5. Stop: `pkill sshd`
 
 **S4 Boot scripts manager** (requires Termux:Boot; shows hint if missing):
