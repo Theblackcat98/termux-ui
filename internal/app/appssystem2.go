@@ -174,7 +174,7 @@ func (s *appsSystemScreen) View() string {
 		out += "\n" + s.confirm.View(clampI(w-4, 30, 140)) + "\n"
 	}
 	if s.pager != nil {
-		out += "\n" + s.pager.View(w)
+		out = overlay(out, s.pager.View(w), w)
 	}
 	return out
 }
