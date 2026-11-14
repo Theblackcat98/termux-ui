@@ -102,6 +102,7 @@ func (s *appsSystemScreen) rebuild() {
 		},
 	)
 	s.rows = rows
+	s.cursor = clampI(s.cursor, 0, maxI(0, len(s.rows)-1))
 }
 
 func storageLabel() string {
