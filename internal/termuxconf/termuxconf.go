@@ -37,7 +37,7 @@ func Load(path string) (*File, error) {
 		if os.IsNotExist(err) {
 			return &File{}, nil
 		}
-		return nil, err
+		return &File{}, err
 	}
 	return Parse(string(data)), nil
 }
