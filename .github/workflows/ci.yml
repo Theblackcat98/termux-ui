@@ -24,4 +24,6 @@ jobs:
         run: go test ./...
 
       - name: Release cross-build
-        run: ./build.sh release
+        # build.sh targets Termux's bash path in its shebang, so invoke it
+        # explicitly instead of executing it.
+        run: bash build.sh release

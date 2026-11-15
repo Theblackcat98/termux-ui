@@ -30,7 +30,9 @@ jobs:
           go test ./...
 
       - name: Cross-build arm64 + arm
-        run: ./build.sh release
+        # build.sh targets Termux's bash path in its shebang, so invoke it
+        # explicitly instead of executing it.
+        run: bash build.sh release
 
       - name: Publish GitHub release
         env:
