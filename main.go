@@ -37,7 +37,8 @@ Options:
   --help       this text
 
 Screens: 1 dashboard · 2 modules & packages · 3 termux settings ·
-4 extra keys · 5 themes & fonts · 6 shell setup · 7 apps & system`)
+4 extra keys · 5 themes & fonts · 6 shell setup · 7 apps & system ·
+8 common apps`)
 			return
 		default:
 			fmt.Fprintf(os.Stderr, "unknown flag: %s (try --help)\n", arg)

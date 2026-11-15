@@ -46,9 +46,10 @@ These are live captures of the running TUI in an isolated terminal with temporar
 | 5 | **Themes & Fonts** | 10 bundled colorschemes with live swatch preview, custom 19-field hex editor, `.properties` import, reset; Nerd Font installs (MesloLGS NF direct from powerlevel10k-media; JetBrainsMono/FiraCode/CaskaydiaCove/Hack from ryanoasis release zips), local `.ttf`, remove font |
 | 6 | **Shell Setup** | ZSH stack status via `core list shell`, plugin roster, install/update/reinstall stack, switch default shell (`chsh`), `p10k configure` |
 | 7 | **Apps & System** | Storage permission, companion apps (Termux:API/Boot/Widget/Styling — F-Droid links + self-tests), SSH server wizard (install → password → start → login info → stop), boot script manager (templates, edit, delete), mirrors / upgrade / system info |
+| 8 | **Common Apps** | Curated everyday packages (essentials, editors, monitoring, media, fun) with live dpkg status; space-select several, then one batched `pkg install/upgrade/uninstall` — works without the core CLI |
 
 Global keys: `↑↓` move · `enter` select · `esc` back · `q` quit (top level) ·
-`?` help · `1–7` jump to screen.
+`?` help · `1–8` jump to screen.
 
 ## Safety model
 
@@ -75,6 +76,9 @@ Global keys: `↑↓` move · `enter` select · `esc` back · `q` quit (top leve
   keeping the zero-runtime-dependency promise.
 - If `core` is missing, screen 2 offers core's official installer:
   `curl -fsSL https://raw.githubusercontent.com/DevCoreXOfficial/core-termux/main/install.sh | bash`
+- Screen 8 (Common Apps) installs plain `pkg` packages from the termux-main
+  repository — every catalog entry is verified to exist there — and needs
+  neither the core CLI nor any runtime dependency.
 
 ## Development
 

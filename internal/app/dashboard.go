@@ -124,6 +124,7 @@ func (d *dashboard) rebuildMenu() {
 		{Label: "Themes & Fonts", Desc: "colorschemes + Nerd Fonts"},
 		{Label: "Shell Setup", Desc: "ZSH stack, chsh, p10k configure"},
 		{Label: "Apps & System", Desc: "storage, companions, SSH, boot, maintenance"},
+		{Label: "Common Apps", Desc: "curated pkg packages: essentials, editors, media, fun"},
 	}
 	d.menu = ui.NewMenu(items)
 }
@@ -166,7 +167,7 @@ func (d *dashboard) Update(a *App, msg tea.Msg) tea.Cmd {
 		case "down", "j":
 			d.menu.Down()
 		case "enter":
-			keys := []string{"2", "3", "4", "5", "6", "7"}
+			keys := []string{"2", "3", "4", "5", "6", "7", "8"}
 			if d.menu.Cursor < len(keys) {
 				return a.jumpTo(keys[d.menu.Cursor])
 			}

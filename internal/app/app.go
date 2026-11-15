@@ -160,7 +160,7 @@ func (a *App) HandleMsg(msg tea.Msg) tea.Cmd {
 					a.Pop()
 					return nil
 				}
-			case "1", "2", "3", "4", "5", "6", "7":
+			case "1", "2", "3", "4", "5", "6", "7", "8":
 				return a.jumpTo(key)
 			}
 		}
@@ -179,6 +179,7 @@ func (a *App) jumpTo(key string) tea.Cmd {
 		func(m *App) screen { return newThemeFontScreen(m) },
 		func(m *App) screen { return newShellScreen(m) },
 		func(m *App) screen { return newAppsSystemScreen(m) },
+		func(m *App) screen { return newCommonAppsScreen(m) },
 	}
 	target := factories[idx](a)
 	a.stack = append(a.stack[:1], target)
@@ -244,6 +245,7 @@ func (s *ekScreen) FooterHints() string         { return "enter edit · p preset
 func (s *tfScreen) FooterHints() string         { return "tab tabs · enter apply/install" }
 func (s *shellScreen) FooterHints() string      { return "enter run · ←/→ pick shell" }
 func (s *appsSystemScreen) FooterHints() string { return "enter run step" }
+func (s *commonAppsScreen) FooterHints() string { return "space select · i install · u upgrade · x uninstall" }
 
 func helpOverlay(width int) string {
 	w := 64
@@ -255,7 +257,7 @@ func helpOverlay(width int) string {
 	}
 	return ui.BoxStyle.Width(w).Render(
 		ui.TitleStyle.Render("termux-ui — global keys") + "\n" +
-			"1–7  jump to screens\n" +
+			"1–8  jump to screens\n" +
 			"↑/↓ j/k  move · enter select · esc back\n" +
 			"q quit from top level · ctrl+c quit anywhere\n" +
 			"? toggle this help\n\n" +
