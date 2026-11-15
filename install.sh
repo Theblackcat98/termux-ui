@@ -26,12 +26,23 @@ URL="https://github.com/${REPO}/releases/latest/download/${ASSET}"
 TMP="$PREFIX/bin/termux-ui.download"
 
 echo "==> downloading $URL"
+FAILED=0
 if command -v curl >/dev/null 2>&1; then
-  curl -fL --progress-bar "$URL" -o "$TMP"
+  curl -fL --progress-bar "$URL" -o "$TMP" || FAILED=1
 elif command -v wget >/dev/null 2>&1; then
-  wget -q --show-progress "$URL" -O "$TMP"
+  wget -q --show-progress "$URL" -O "$TMP" || FAILED=1
 else
   echo "error: need curl or wget to download." >&2
+  exit 1
+fi
+
+if [ "$FAILED" = 1 ]; then
+  rm -f "$TMP"
+  echo "error: download failed — no published release provides asset $ASSET." >&2
+  echo "       Build on-device instead (Termux's own golang, no root needed):" >&2
+  echo "         pkg install golang git" >&2
+  echo "         git clone https://github.com/${REPO}.git && cd termux-ui && ./build.sh" >&2
+  echo "         cp termux-ui $PREFIX/bin/" >&2
   exit 1
 fi
 

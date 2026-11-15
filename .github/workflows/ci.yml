@@ -1,0 +1,27 @@
+# ci.yml — keep main releasable: vet, test, and exercise the same
+# cross-build the release job runs, on every push and PR.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./...
+
+      - name: Release cross-build
+        run: ./build.sh release

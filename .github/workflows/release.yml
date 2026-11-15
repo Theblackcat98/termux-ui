@@ -1,0 +1,44 @@
+# release.yml — publish prebuilt binaries when a v* tag is pushed.
+#
+#   git tag v0.20261114 && git push origin v0.20261114
+#
+# Produces the exact asset names install.sh expects:
+#   termux-ui_linux_arm64, termux-ui_linux_arm, sha256sums
+# so https://github.com/<repo>/releases/latest/download/<asset> resolves.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Vet and test
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Cross-build arm64 + arm
+        run: ./build.sh release
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            dist/termux-ui_linux_arm64 \
+            dist/termux-ui_linux_arm \
+            dist/sha256sums
