@@ -37,6 +37,20 @@ These are live captures of the running TUI in an isolated terminal with temporar
 | Themes & Fonts | |
 | <a href="docs/screenshots/themes-fonts.png"><img src="docs/screenshots/themes-fonts.png" alt="Themes and Fonts screen" width="480"></a> | |
 
+### On an Android device
+
+The same screens captured on a real device — a OnePlus N10 5G (aarch64, Android 11) running Termux 0.118.3 with `core` 4.27.2 installed, so modules, shell and app screens show live status. Cropped to the app's content; select an image for the full-size capture.
+
+| Dashboard | Modules & Packages |
+|---|---|
+| <a href="docs/screenshots/device/device-dashboard.png"><img src="docs/screenshots/device/device-dashboard.png" alt="Dashboard screen on device" width="480"></a> | <a href="docs/screenshots/device/device-modules-packages.png"><img src="docs/screenshots/device/device-modules-packages.png" alt="Modules and Packages screen on device" width="480"></a> |
+| Termux Settings | Extra Keys Builder |
+| <a href="docs/screenshots/device/device-termux-settings.png"><img src="docs/screenshots/device/device-termux-settings.png" alt="Termux Settings screen on device" width="480"></a> | <a href="docs/screenshots/device/device-extra-keys-builder.png"><img src="docs/screenshots/device/device-extra-keys-builder.png" alt="Extra Keys Builder screen on device" width="480"></a> |
+| Themes & Fonts | Shell Setup |
+| <a href="docs/screenshots/device/device-themes-fonts.png"><img src="docs/screenshots/device/device-themes-fonts.png" alt="Themes and Fonts screen on device" width="480"></a> | <a href="docs/screenshots/device/device-shell-setup.png"><img src="docs/screenshots/device/device-shell-setup.png" alt="Shell Setup screen on device" width="480"></a> |
+| Apps & System | Common Apps |
+| <a href="docs/screenshots/device/device-apps-system.png"><img src="docs/screenshots/device/device-apps-system.png" alt="Apps and System screen on device" width="480"></a> | <a href="docs/screenshots/device/device-common-apps.png"><img src="docs/screenshots/device/device-common-apps.png" alt="Common Apps screen on device" width="480"></a> |
+
 | # | Screen | What it does |
 |---|--------|--------------|
 | 1 | **Dashboard** | Termux/core/termux-ui versions, storage permission, pending restarts; quick actions: install/update core (`i`), setup storage (`s`), self-update (`u`) |
