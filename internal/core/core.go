@@ -199,15 +199,25 @@ func LogTail(module string, n int) (string, bool) {
 }
 
 // ParseVersion compares dotted versions; returns -1, 0 or 1.
+// versionInt parses the numeric part of a version segment, ignoring any
+// "+commithash" or "-prerelease" suffix (build.sh appends a short commit hash).
+func versionInt(s string) int {
+	if i := strings.IndexAny(s, "+-"); i >= 0 {
+		s = s[:i]
+	}
+	n, _ := strconv.Atoi(strings.TrimSpace(s))
+	return n
+}
+
 func ParseVersion(a, b string) int {
 	as, bs := strings.Split(strings.TrimPrefix(a, "v"), "."), strings.Split(strings.TrimPrefix(b, "v"), ".")
 	for i := 0; i < len(as) || i < len(bs); i++ {
 		var av, bv int
 		if i < len(as) {
-			av, _ = strconv.Atoi(strings.TrimSpace(as[i]))
+			av = versionInt(as[i])
 		}
 		if i < len(bs) {
-			bv, _ = strconv.Atoi(strings.TrimSpace(bs[i]))
+			bv = versionInt(bs[i])
 		}
 		if av != bv {
 			if av < bv {

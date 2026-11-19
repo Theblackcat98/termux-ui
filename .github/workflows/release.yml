@@ -24,6 +24,15 @@ jobs:
         with:
           go-version-file: go.mod
 
+      # The 32-bit arm artifact is GOOS=android with cgo (a Go requirement for
+      # 32-bit android), which needs the NDK compiler. arm64 stays static.
+      - name: Set up Android NDK
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27c
+          add-to-path: false
+
       - name: Vet and test
         run: |
           go vet ./...
@@ -32,6 +41,8 @@ jobs:
       - name: Cross-build arm64 + arm
         # build.sh targets Termux's bash path in its shebang, so invoke it
         # explicitly instead of executing it.
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
         run: bash build.sh release
 
       - name: Publish GitHub release

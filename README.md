@@ -84,6 +84,13 @@ Global keys: `↑↓` move · `enter` select · `esc` back · `q` quit (top leve
 
 ## Notes and deliberate deviations
 
+- Builds target `GOOS=android`, never `GOOS=linux`: Android 11's seccomp
+  filter kills `GOOS=linux` binaries with SIGSYS the first time Go's
+  `os/exec` issues `faccessat2`, which used to happen on startup as soon as
+  `core` was installed. And since Android has no `/etc/resolv.conf`, the
+  pure-Go resolver would dial loopback and fail — `internal/dnsfix` points it
+  at Termux's `$PREFIX/etc/resolv.conf` so update checks and font downloads
+  work on-device.
 - The SSH wizard reports the actual port from `$PREFIX/etc/ssh/sshd_config`
   (Termux default is **8022**); PLAN.md's example said 8020.
 - Nerd-font zips are unpacked natively in Go — no `unzip` package needed,

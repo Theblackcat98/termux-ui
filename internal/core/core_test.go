@@ -117,3 +117,21 @@ func TestParseVersion(t *testing.T) {
 		}
 	}
 }
+
+func TestParseVersionCommitSuffix(t *testing.T) {
+	cases := []struct {
+		a, b string
+		want int
+	}{
+		{"v0.20261119+91c89a0", "v0.20261114", 1},
+		{"v0.20261119+91c89a0", "v0.20261119", 0},
+		{"v0.20261114", "v0.20261119+abc", -1},
+		{"dev", "v0.20261114", -1},
+		{"1.2.3-beta", "1.2.3", 0},
+	}
+	for _, c := range cases {
+		if got := ParseVersion(c.a, c.b); got != c.want {
+			t.Errorf("ParseVersion(%q, %q) = %d, want %d", c.a, c.b, got, c.want)
+		}
+	}
+}

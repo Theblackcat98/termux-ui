@@ -12,6 +12,7 @@ import (
 	"github.com/muesli/termenv"
 
 	"github.com/Theblackcat98/termux-ui/internal/app"
+	"github.com/Theblackcat98/termux-ui/internal/dnsfix"
 )
 
 var version = "dev"
@@ -56,6 +57,10 @@ Screens: 1 dashboard · 2 modules & packages · 3 termux settings ·
 			}
 		}
 	}
+
+	// Point Go's resolver at Termux's resolv.conf before anything dials out;
+	// Android has no /etc/resolv.conf (no-op everywhere else).
+	dnsfix.Apply()
 
 	if noColor {
 		lipgloss.SetColorProfile(termenv.Ascii)
